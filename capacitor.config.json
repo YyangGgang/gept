@@ -1,0 +1,11 @@
+{
+  "appId": "tw.gept.exam.tablet",
+  "appName": "台灣全民英檢平板測驗",
+  "webDir": "src",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

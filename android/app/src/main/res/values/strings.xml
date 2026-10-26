@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">全民英檢</string>
+    <string name="title_activity_main">台灣全民英檢平板測驗</string>
+    <string name="package_name">tw.gept.exam.tablet</string>
+    <string name="custom_url_scheme">tw.gept.exam.tablet</string>
+</resources>
