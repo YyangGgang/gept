@@ -11,10 +11,15 @@
  *    （考生瀏覽器只送出成績，不再跳出「未完成 Google 驗證程序」的授權視窗）
  * 5. 複製部署後的網頁應用程式網址 (https://script.google.com/macros/s/.../exec)
  *    貼入前端 src/index.html 的 GAS_WEBAPP_URL
+ * 6. 頁籤「App版次」由編譯成功後自動建立。改過本檔後要再部署新版本，
+ *    平板啟動時的版次檢查與寫入版次才會生效。
  */
 
 const SPREADSHEET_ID = '1Tc4ga4XEA9LoB-HB2bFhN5j1S-ws1UHT65Ea0y8s7PI';
 const SHEET_NAME = '測驗成績紀錄';
+const VERSION_SHEET_NAME = 'App版次';
+// 編譯腳本從此常數讀取。不要貼進 index.html，否則任何平板都能把舊版改成最新。
+const VERSION_PUBLISH_TOKEN = 'b7e4c91a6d2f4803ae15c8d79f0b3264';
 
 /**
  * 供前端開啟時自動檢核 Google 帳號驗證狀態並直接抓取 Google 提供的中文姓名（免手動填寫）
@@ -70,12 +75,126 @@ function toSheetClockText(value) {
   return "'" + hh + ':' + mm + ':' + ss;
 }
 
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function sheetTextValue(value) {
+  if (Object.prototype.toString.call(value) === '[object Date]' && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, 'Asia/Taipei', 'yyyy-MM-dd HH:mm:ss');
+  }
+  return String(value == null ? '' : value).replace(/^'/, '').trim();
+}
+
+function ensureVersionSheet(ss) {
+  let sheet = ss.getSheetByName(VERSION_SHEET_NAME);
+  if (!sheet) sheet = ss.insertSheet(VERSION_SHEET_NAME);
+  const header = String(sheet.getRange(1, 1).getValue() || '');
+  if (header !== '版次代碼') {
+    if (sheet.getLastRow() > 0) sheet.insertRowBefore(1);
+    sheet.getRange(1, 1, 1, 4).setValues([['版次代碼', '版次名稱', '建置時間', '是否最新']]);
+    sheet.setFrozenRows(1);
+  }
+  sheet.getRange(1, 1, 1, 4).setFontWeight('bold');
+  sheet.getRange('A:A').setNumberFormat('0');
+  sheet.setColumnWidth(2, 160);
+  sheet.setColumnWidth(3, 180);
+  sheet.getRange('A1').setNote('由 build-apk.bat 編譯成功後寫入。D 欄為「是」的那一列，是平板啟動時要比對的最新版。');
+  return sheet;
+}
+
+function getLatestAppVersion() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(VERSION_SHEET_NAME);
+  if (!sheet || sheet.getLastRow() < 2) {
+    return { ok: true, found: false, versionCode: 0, versionName: '', builtAt: '' };
+  }
+  const values = sheet.getRange(1, 1, sheet.getLastRow(), 4).getValues();
+  let best = null;
+  for (let i = 1; i < values.length; i++) {
+    const code = Number(values[i][0]);
+    if (!code || String(values[i][3]) !== '是') continue;
+    if (!best || code >= best.versionCode) {
+      best = {
+        versionCode: code,
+        versionName: sheetTextValue(values[i][1]),
+        builtAt: sheetTextValue(values[i][2])
+      };
+    }
+  }
+  if (!best) return { ok: true, found: false, versionCode: 0, versionName: '', builtAt: '' };
+  return {
+    ok: true,
+    found: true,
+    versionCode: best.versionCode,
+    versionName: best.versionName,
+    builtAt: best.builtAt
+  };
+}
+
+function publishAppVersion(data) {
+  const token = String(data.token || '');
+  if (!token || token !== VERSION_PUBLISH_TOKEN) {
+    return { ok: false, error: '版次發布驗證失敗' };
+  }
+  const versionCode = Number(data.versionCode);
+  const versionName = String(data.versionName || '').trim();
+  const builtAt = String(data.builtAt || '').trim();
+  if (!versionCode || versionCode < 1 || Math.floor(versionCode) !== versionCode) {
+    return { ok: false, error: '版次代碼不正確' };
+  }
+  if (!/^\d{4}\.\d{2}\.\d{2}\.\d+$/.test(versionName)) {
+    return { ok: false, error: '版次名稱格式不正確' };
+  }
+  if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(builtAt)) {
+    return { ok: false, error: '建置時間格式不正確' };
+  }
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ensureVersionSheet(ss);
+  const last = Math.max(sheet.getLastRow(), 1);
+  const codes = sheet.getRange(1, 1, last, 1).getValues();
+  const marks = sheet.getRange(1, 4, last, 1).getValues();
+  let targetRow = -1;
+  const clearRows = [];
+  for (let i = 1; i < codes.length; i++) {
+    const row = i + 1;
+    if (Number(codes[i][0]) === versionCode) targetRow = row;
+    else if (String(marks[i][0]) === '是') clearRows.push(row);
+  }
+  clearRows.forEach(function (row) {
+    sheet.getRange(row, 4).setValue('否');
+  });
+  if (targetRow === -1) targetRow = sheet.getLastRow() + 1;
+  sheet.getRange(targetRow, 1, 1, 4).setValues([[
+    versionCode,
+    versionName,
+    "'" + builtAt,
+    '是'
+  ]]);
+  SpreadsheetApp.flush();
+  return { ok: true, versionCode: versionCode, versionName: versionName, builtAt: builtAt, row: targetRow };
+}
+
+function doGet(e) {
+  try {
+    const action = e && e.parameter ? String(e.parameter.action || '') : '';
+    if (action === 'appVersion') return jsonOut(getLatestAppVersion());
+    return jsonOut({ ok: false, error: '未知的查詢' });
+  } catch (err) {
+    return jsonOut({ ok: false, error: String(err) });
+  }
+}
+
 function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.tryLock(10000);
   try {
     const rawBody = e.postData ? e.postData.contents : '{}';
     const data = JSON.parse(rawBody);
+    if (data && data.action === 'publishAppVersion') {
+      return jsonOut(publishAppVersion(data));
+    }
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     let sheet = ss.getSheetByName(SHEET_NAME);
     if (!sheet) {

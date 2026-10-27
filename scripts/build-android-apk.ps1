@@ -42,8 +42,18 @@ if (-not $env:ANDROID_HOME -or -not (Test-Path $env:ANDROID_HOME)) {
   exit 1
 }
 
-npm run apk:debug
+& "$PSScriptRoot\app-version.ps1" -Action Prepare
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+$buildCode = 0
+try {
+  npm run apk:debug
+  $buildCode = $LASTEXITCODE
+} finally {
+  & "$PSScriptRoot\app-version.ps1" -Action Restore
+}
+
+if ($buildCode -ne 0) { exit $buildCode }
 
 $built = Join-Path $root "android\app\build\outputs\apk\debug\app-debug.apk"
 if (-not (Test-Path -LiteralPath $built)) {
@@ -65,4 +75,8 @@ Copy-Item -LiteralPath $built -Destination $ready -Force
 
 Write-Host ""
 Write-Host "可安裝的 APK：$ready"
+& "$PSScriptRoot\app-version.ps1" -Action Publish
+if ($LASTEXITCODE -ne 0) {
+  Write-Host "APK 已產出，但這一版沒有寫入試算表。請先重新部署 gas/Code.gs，再雙擊 publish-app-version.bat（不會重編，也不會再跳號）。"
+}
 Start-Process explorer.exe -ArgumentList "/select,`"$ready`""

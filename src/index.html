@@ -82,6 +82,14 @@
     header.is-scroll-collapsed {
       display: none;
     }
+    #global-timer-bar {
+      position: fixed;
+      right: max(1rem, calc((100vw - 80rem) / 2 + 1.5rem));
+      z-index: 45;
+    }
+    #exam-stage-tabs-sticky.timer-docked {
+      box-sizing: border-box;
+    }
     #phone-unsupported {
       display: none;
     }
@@ -134,6 +142,30 @@
     </div>
   </div>
 
+  <div id="app-version-banner" class="hidden fixed bottom-0 inset-x-0 z-[45] bg-amber-50 border-t border-amber-300 text-amber-950 text-sm px-4 py-3 text-center leading-relaxed" role="status"></div>
+
+  <div id="app-version-gate" class="hidden fixed inset-0 z-[90] bg-slate-950/75 px-4 items-center justify-center" role="alertdialog" aria-modal="true" aria-labelledby="app-version-gate-title">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-6 space-y-4">
+      <h2 id="app-version-gate-title" class="text-lg font-bold text-slate-900">這台平板不是最新版</h2>
+      <p id="app-version-gate-body" class="text-sm text-slate-600 leading-relaxed"></p>
+      <p class="text-xs text-slate-500 leading-relaxed">最新版次記在 Google 試算表「全民英檢成績(自動)」的頁籤 App版次。請安裝新的 APK 後再重開。</p>
+      <button type="button" id="btn-app-version-continue" class="w-full min-h-[48px] py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm">我知道了，仍使用這個版本</button>
+    </div>
+  </div>
+
+  <div id="exam-leave-guard" class="hidden fixed inset-0 z-[80] bg-slate-950/75 px-4 items-center justify-center" role="alertdialog" aria-modal="true" aria-labelledby="exam-leave-guard-title">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-amber-200 p-6 space-y-4">
+      <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 text-xs font-semibold">誤觸／離開</div>
+      <h2 id="exam-leave-guard-title" class="text-lg font-bold text-slate-900">您可能誤觸而離開目前程序</h2>
+      <p id="exam-leave-guard-body" class="text-sm text-slate-600 leading-relaxed"></p>
+      <p id="exam-leave-guard-where" class="text-xs text-slate-500 leading-relaxed"></p>
+      <div class="flex flex-col sm:flex-row gap-2">
+        <button type="button" id="exam-leave-guard-stay" class="flex-1 min-h-[48px] py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm">留在目前程序</button>
+        <button type="button" id="exam-leave-guard-go" class="flex-1 min-h-[48px] py-3 px-4 rounded-xl border border-amber-400 bg-amber-50 hover:bg-amber-100 text-amber-950 font-semibold text-sm">確認離開</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Top Navigation & User Profile Bar (右上角顯示 Google 中文姓名) -->
   <header class="sticky top-0 z-40 bg-slate-900 text-white shadow-md border-b border-slate-800">
     <div id="site-brand-bar" class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -147,6 +179,7 @@
             <span class="hidden md:inline-block text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
               LTTC 等比例量尺計分
             </span>
+            <span id="app-version-pill" class="hidden text-xs px-2 py-0.5 rounded-full border border-slate-500 bg-slate-700 text-slate-100"></span>
           </div>
           <p class="text-xs text-slate-400">初級 (A2) / 中級 (B1) ・ 含二階段耳機音聽口說與寫作 ・ 全自動寫入「全民英檢成績」</p>
         </div>
@@ -176,20 +209,19 @@
             <span id="records-count-pill" class="px-1.5 py-0.2 rounded-full text-[11px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">2</span>
           </button>
         </nav>
-
-        <!-- Live Timer Pill when test is running -->
-        <div id="global-timer-bar" class="hidden items-center gap-2 py-1">
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs font-medium">
-            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-            <span id="global-session-label">進行中</span>
-          </span>
-          <div class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-700 font-mono text-sm font-bold text-emerald-400" id="global-countdown-text">
-            30:00
-          </div>
-        </div>
       </div>
     </div>
   </header>
+
+  <div id="global-timer-bar" class="hidden items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 shadow-md">
+    <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs font-medium">
+      <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+      <span id="global-session-label">進行中</span>
+    </span>
+    <div class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-700 font-mono text-sm font-bold text-emerald-400" id="global-countdown-text">
+      30:00
+    </div>
+  </div>
 
   <!-- Toast Notification Area -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
@@ -324,7 +356,7 @@
 
               <div class="text-xs text-slate-600 bg-indigo-50/70 border border-indigo-100 rounded-xl p-3.5 space-y-1">
                 <div class="font-semibold text-indigo-950">🎧 二階段音聽口說特色（初級）：</div>
-                <p>包含「純音聽複誦（耳機播音 2 次、不顯示文字）」、「朗讀句子與短文」及「純音聽回答問題（播音 2 次後立即錄音 15 秒）」。</p>
+                <p>複誦與回答問題不印題、耳機連播 2 次；朗讀短文印在試卷上，不播示範音。</p>
               </div>
             </div>
           </div>
@@ -374,7 +406,7 @@
 
               <div class="text-xs text-slate-600 bg-blue-50/70 border border-blue-100 rounded-xl p-3.5 space-y-1">
                 <div class="font-semibold text-blue-950">🎧 二階段音聽口說與寫作特色（中級）：</div>
-                <p>口說含「朗讀短文」、「純音聽回答問題（不印題目、連播 2 次後錄音 15~30 秒）」與「看圖敘述」；寫作含「中譯英 (40%)」與「英文作文 (60%)」。</p>
+                <p>朗讀短文印在試卷；回答問題不印題、連播 2 次；看圖敘述印出圖片與問題。寫作是中譯英 (40%) 與英文作文 (60%)。</p>
               </div>
             </div>
           </div>
@@ -414,7 +446,7 @@
               <tr>
                 <td class="py-2.5 px-3 font-semibold text-slate-900">第一階段：聽力測驗</td>
                 <td class="py-2.5 px-3">8 分鐘</td>
-                <td class="py-2.5 px-3">10 題（看圖辨義2、問答3、對話3、短文/談話2）</td>
+                <td class="py-2.5 px-3">10 題（看圖辨義2、問答3、對話3、短文/談話2；題幹不印出）</td>
                 <td class="py-2.5 px-3"><code class="bg-slate-100 px-1.5 py-0.5 rounded">答對題數 × 12 分</code></td>
                 <td class="py-2.5 px-3 font-bold text-slate-900">120 分</td>
                 <td class="py-2.5 px-3">單科 ≥ <strong>72 分</strong>（答對 ≥ 6 題），且兩科總和 ≥ <strong>160 分</strong></td>
@@ -422,7 +454,7 @@
               <tr>
                 <td class="py-2.5 px-3 font-semibold text-slate-900">第一階段：閱讀測驗</td>
                 <td class="py-2.5 px-3">10 分鐘</td>
-                <td class="py-2.5 px-3">10 題（詞彙結構4、段落填空3、閱讀理解3）</td>
+                <td class="py-2.5 px-3">10 題（詞彙4、段落填空3、閱讀理解3；填空含句子，閱讀含雙文本）</td>
                 <td class="py-2.5 px-3"><code class="bg-slate-100 px-1.5 py-0.5 rounded">答對題數 × 12 分</code></td>
                 <td class="py-2.5 px-3 font-bold text-slate-900">120 分</td>
                 <td class="py-2.5 px-3">單科 ≥ <strong>72 分</strong>（答對 ≥ 6 題），且兩科總和 ≥ <strong>160 分</strong></td>
@@ -430,7 +462,7 @@
               <tr>
                 <td class="py-2.5 px-3 font-semibold text-indigo-700">第二階段：口說音聽測驗</td>
                 <td class="py-2.5 px-3">5 分鐘</td>
-                <td class="py-2.5 px-3">5 題（耳機連播2次不印題目：複誦/朗讀/回答問題）</td>
+                <td class="py-2.5 px-3">5 題（複誦與回答問題不印題、連播 2 次；朗讀與看圖敘述印在試卷）</td>
                 <td class="py-2.5 px-3"><code class="bg-slate-100 px-1.5 py-0.5 rounded">(發音流利度0~5 + 文法字彙0~5) × 10</code></td>
                 <td class="py-2.5 px-3 font-bold text-slate-900">100 分</td>
                 <td class="py-2.5 px-3">初級 ≥ <strong>80 分</strong> ／ 中級 ≥ <strong>80 分</strong>（平均 4 級分）</td>
@@ -438,7 +470,7 @@
               <tr>
                 <td class="py-2.5 px-3 font-semibold text-indigo-700">第二階段：寫作測驗</td>
                 <td class="py-2.5 px-3">7 分鐘</td>
-                <td class="py-2.5 px-3">初級：單句3題+段落1篇 ／ 中級：中譯英1題+作文1篇</td>
+                <td class="py-2.5 px-3">初級：單句3題+看圖段落1篇 ／ 中級：中譯英1題+作文1篇</td>
                 <td class="py-2.5 px-3">初級：<code class="bg-slate-100 px-1 rounded">((單句/6)+(段落/5))×50</code><br>中級：<code class="bg-slate-100 px-1 rounded">中譯英×8 + 作文×12</code></td>
                 <td class="py-2.5 px-3 font-bold text-slate-900">100 分</td>
                 <td class="py-2.5 px-3">初級 ≥ <strong>70 分</strong> ／ 中級 ≥ <strong>80 分</strong></td>
@@ -505,7 +537,7 @@
             <span id="prac-badge-listening">0 / 10 題</span>
           </div>
           <div class="font-bold text-sm mt-0.5">🎧 聽力無限聽練習</div>
-          <div class="text-[11px] opacity-80 mt-0.5">可無限重播音檔 + 檢視原文</div>
+          <div class="text-[11px] opacity-80 mt-0.5">可重播；作答後才顯示原文</div>
         </button>
 
         <button type="button" id="prac-tab-reading" class="p-3 rounded-xl border text-left transition-all bg-white text-slate-700 border-slate-200 hover:border-indigo-400">
@@ -639,7 +671,7 @@
           <div class="stage-sticky-head flex items-center justify-between flex-wrap gap-2 px-5 py-4 border-b border-slate-100 rounded-t-2xl">
             <div>
               <h3 class="text-base font-bold text-slate-900">🎧 第一階段：聽力測驗（共 10 題，每題 12 分，滿分 120 分）</h3>
-              <p class="text-xs text-slate-500 mt-0.5">點擊「播放聽力語音」收聽題目（支援瀏覽器原生美式英語語音合成與聲學提示音），每題播出一遍。</p>
+              <p class="text-xs text-slate-500 mt-0.5">比照正試：題幹不印在試卷上，每題只播一次。看圖辨義只見圖與 A／B／C／D；問答、對話、談話印出文字選項；初級短文聽解改選圖片。中級部分對話與談話附有圖表。</p>
             </div>
             <button type="button" id="btn-go-next-reading" class="px-3.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold">
               前往下一科：一階閱讀測驗 →
@@ -655,7 +687,7 @@
           <div class="stage-sticky-head flex items-center justify-between flex-wrap gap-2 px-5 py-4 border-b border-slate-100 rounded-t-2xl">
             <div>
               <h3 class="text-base font-bold text-slate-900">📖 第一階段：閱讀測驗（共 10 題，每題 12 分，滿分 120 分）</h3>
-              <p class="text-xs text-slate-500 mt-0.5">涵蓋詞彙與結構、段落填空與閱讀理解題組。初試通過標準為「聽力＋閱讀 ≥ 160 分，且單科皆 ≥ 72 分」。</p>
+              <p class="text-xs text-slate-500 mt-0.5">第一部分為詞彙，段落填空含句子選項，閱讀理解含雙文本。通過標準為聽力＋閱讀 ≥ 160 分，且單科皆 ≥ 72 分。</p>
             </div>
             <button type="button" id="btn-go-next-speaking" class="px-3.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold">
               前往第二階段：二階音聽口說測驗 →
@@ -675,7 +707,7 @@
               </div>
               <h3 class="text-base font-bold text-slate-900">第二階段（複試）：口說音聽測驗（共 5 題，滿分 100 分，通過門檻 80 分）</h3>
               <p class="text-xs text-slate-600 mt-0.5">
-                完全模擬 LTTC 複試口說規範：<strong>「複誦」與「回答問題」題目不印在試卷上，由耳機連續播放 2 次（間隔 1.5 秒）</strong>，播畢自動發出提示音並啟動麥克風錄音與 AI 級分評定。
+                複誦與回答問題不印題，耳機連播 2 次（間隔 1.5 秒）後錄音，作答中不能打開原文。朗讀文字印在試卷，不播示範音。中級看圖敘述印出圖片與問題。
               </p>
             </div>
             <button type="button" id="btn-go-next-writing" class="px-3.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold">
@@ -766,6 +798,7 @@
 
     </main>
 
+  <script src="app-version.js"></script>
   <script>
     // 攔截右鍵選單，避免 Chrome / Edge 對英文考題提供「翻譯成中文」。
     document.addEventListener('contextmenu', (event) => {
@@ -790,10 +823,10 @@
           { id: 'EL10', part: '第四部分：短文聽解', audioText: 'Welcome to Sunny Bakery. Today all fresh strawberry cakes are twenty percent off before five p.m. Buy two loaves of whole wheat bread and you will get a free cup of hot coffee.', prompt: '請聽店家廣播，選出最適合的答案（How can a customer get a free cup of coffee?）：', options: ['A. Buy a strawberry cake after five p.m.', 'B. Buy two loaves of whole wheat bread.', 'C. Spend more than five hundred dollars.'], answer: 1 }
         ],
         reading: [
-          { id: 'ER1', part: '第一部分：詞彙與結構', prompt: '1. Mr. Lin checks his email every morning ______ he arrives at the office.', options: ['A. as soon as', 'B. so that', 'C. even though', 'D. because of'], answer: 0 },
-          { id: 'ER2', part: '第一部分：詞彙與結構', prompt: '2. Please remember to turn off the air conditioner before ______ the classroom.', options: ['A. leave', 'B. left', 'C. leaving', 'D. to leave'], answer: 2 },
-          { id: 'ER3', part: '第一部分：詞彙與結構', prompt: '3. The new public library is very ______; it takes only five minutes to walk there from the metro station.', options: ['A. convenient', 'B. expensive', 'C. nervous', 'D. dangerous'], answer: 0 },
-          { id: 'ER4', part: '第一部分：詞彙與結構', prompt: '4. Neither my sister nor my parents ______ spicy food, so we ordered mild soup.', options: ['A. likes', 'B. liking', 'C. like', 'D. is liking'], answer: 2 },
+          { id: 'ER1', part: '第一部分：詞彙', prompt: '1. Mr. Lin checks his email every morning ______ he arrives at the office.', options: ['A. as soon as', 'B. so that', 'C. even though', 'D. because of'], answer: 0 },
+          { id: 'ER2', part: '第一部分：詞彙', prompt: '2. Please remember to turn off the air conditioner before ______ the classroom.', options: ['A. leave', 'B. left', 'C. leaving', 'D. to leave'], answer: 2 },
+          { id: 'ER3', part: '第一部分：詞彙', prompt: '3. The new public library is very ______; it takes only five minutes to walk there from the metro station.', options: ['A. convenient', 'B. expensive', 'C. nervous', 'D. dangerous'], answer: 0 },
+          { id: 'ER4', part: '第一部分：詞彙', prompt: '4. Neither my sister nor my parents ______ spicy food, so we ordered mild soup.', options: ['A. likes', 'B. liking', 'C. like', 'D. is liking'], answer: 2 },
           { id: 'ER5', part: '第二部分：段落填空 (題組 5~7)', passage: 'Keeping a regular exercise habit is important for everyone. Many office workers spend more than eight hours (5)______ in front of a computer every day. Doctors suggest that brisk walking or jogging for thirty minutes three times a week (6)______ improve heart health and reduce stress. In addition, drinking enough water during exercise helps the body stay (7)______.', prompt: '5. 請選出第 (5) 題最適合填入空格的選項：', options: ['A. sit', 'B. sitting', 'C. sat', 'D. to sit'], answer: 1 },
           { id: 'ER6', part: '第二部分：段落填空 (題組 5~7)', prompt: '6. 請選出第 (6) 題最適合填入空格的選項：', options: ['A. can', 'B. having', 'C. ought', 'D. is'], answer: 0 },
           { id: 'ER7', part: '第二部分：段落填空 (題組 5~7)', prompt: '7. 請選出第 (7) 題最適合填入空格的選項：', options: ['A. crowded', 'B. energetic', 'C. polite', 'D. narrow'], answer: 1 },
@@ -804,7 +837,7 @@
         speaking: [
           { id: 'ES1', part: '第一部分：純音聽複誦 (Repeat)', audioOnly: true, timeLimitSec: 10, audioText: 'Could you tell me where the nearest post office is?', expectedKeywords: ['could', 'you', 'tell', 'me', 'where', 'nearest', 'post', 'office'], instruction: '【題目不印在試卷上】請點擊下方「耳機播音 2 次」，聽完兩次語音後，立即在 10 秒內清楚複誦該英文句子。' },
           { id: 'ES2', part: '第一部分：純音聽複誦 (Repeat)', audioOnly: true, timeLimitSec: 10, audioText: 'Remember to back up your files before shutting down the computer.', expectedKeywords: ['remember', 'back', 'up', 'files', 'before', 'shutting', 'down', 'computer'], instruction: '【題目不印在試卷上】請點擊下方「耳機播音 2 次」，聽完兩次語音後，立即在 10 秒內清楚複誦該英文句子。' },
-          { id: 'ES3', part: '第二部分：朗讀句子與短文 (Read Aloud)', audioOnly: false, timeLimitSec: 20, audioText: 'Reading books every day opens a window to the world. Even fifteen minutes of reading before bedtime can help us learn new ideas and relax our minds.', expectedKeywords: ['reading', 'books', 'every', 'day', 'window', 'world', 'fifteen', 'minutes', 'bedtime', 'relax'], instruction: '【試卷顯示文字】請先審閱下方短文，並於 20 秒內以自然流暢的語調朗讀並錄音（亦可先聽示範發音）。' },
+          { id: 'ES3', part: '第二部分：朗讀句子與短文 (Read Aloud)', audioOnly: false, timeLimitSec: 20, audioText: 'Reading books every day opens a window to the world. Even fifteen minutes of reading before bedtime can help us learn new ideas and relax our minds.', expectedKeywords: ['reading', 'books', 'every', 'day', 'window', 'world', 'fifteen', 'minutes', 'bedtime', 'relax'], instruction: '【試卷印有短文】請直接朗讀下方文字，正試不播放示範音。' },
           { id: 'ES4', part: '第三部分：純音聽回答問題 (Answer Questions)', audioOnly: true, timeLimitSec: 15, audioText: 'What do you usually like to do on weekends to relax?', expectedKeywords: ['weekend', 'like', 'run', 'coffee', 'family', 'read', 'exercise', 'relax', 'usually'], instruction: '【題目不印在試卷上】請點擊「耳機播音 2 次」聽取問題，播畢後於 15 秒內以英語錄音回答。' },
           { id: 'ES5', part: '第三部分：純音聽回答問題 (Answer Questions)', audioOnly: true, timeLimitSec: 15, audioText: 'How often do you exercise, and what is your favorite sport?', expectedKeywords: ['exercise', 'week', 'every', 'favorite', 'sport', 'running', 'jogging', 'swimming', 'basketball'], instruction: '【題目不印在試卷上】請點擊「耳機播音 2 次」聽取問題，播畢後於 15 秒內以英語錄音回答。' }
         ],
@@ -816,8 +849,9 @@
           ],
           essay: {
             id: 'EW_ESSAY',
-            title: '第二部分：段落寫作（看圖/情境敘述，約 50 字，佔 50%）',
-            prompt: '請根據以下日常情境寫出約 50 字的英語短文：描述您週末早晨的運動或休閒習慣（例如晨跑、沖泡咖啡與家人共度早餐時光），以及這項習慣帶給您的感受。',
+            title: '第二部分：看圖段落寫作（約 50 字，佔 50%）',
+            svgType: 'morning',
+            prompt: '請看圖。用約 50 個英文字描述圖中的早晨：有人在運動，桌上有一杯飲料。並寫出這幅情景給你的感受。',
             sample: 'Every Sunday morning, I wake up early and go jogging in the park near my home for thirty minutes. After exercising, I enjoy making a cup of fresh pour-over coffee and having breakfast with my family. This healthy routine makes me feel energetic and happy all week.',
             minWords: 35
           }
@@ -837,10 +871,10 @@
           { id: 'IL10', part: '第四部分：簡短談話', audioText: 'When brewing specialty pour-over coffee, water temperature plays a decisive role in extraction. Light-roasted beans generally require hotter water between ninety-two and ninety-four degrees Celsius to bring out floral and fruity acidity, whereas dark roasts taste more balanced at eighty-eight degrees.', prompt: '請聽簡短談話，選出最適合的答案（According to the speaker, why is hotter water recommended for light-roasted coffee beans?）：', options: ['A. To cool down the ceramic dripper faster.', 'B. To extract their floral and fruity notes effectively.', 'C. To remove all caffeine from the beverage.', 'D. To make the coffee beans last longer in storage.'], answer: 1 }
         ],
         reading: [
-          { id: 'IR1', part: '第一部分：詞彙與結構', prompt: '1. The new intelligent scheduling platform has significantly ______ production bottlenecks across all three rolling mills.', options: ['A. alleviated', 'B. hesitated', 'C. exaggerated', 'D. wandered'], answer: 0 },
-          { id: 'IR2', part: '第一部分：詞彙與結構', prompt: '2. Had the engineering team detected the sensor anomaly earlier, the unexpected downtime ______ avoided.', options: ['A. will be', 'B. could have been', 'C. has been', 'D. was being'], answer: 1 },
-          { id: 'IR3', part: '第一部分：詞彙與結構', prompt: '3. Consistent long-term asset allocation requires emotional discipline, ______ when global financial markets experience sharp short-term volatility.', options: ['A. barely', 'B. particularly', 'C. reluctantly', 'D. formerly'], answer: 1 },
-          { id: 'IR4', part: '第一部分：詞彙與結構', prompt: '4. The software architect insisted that every API endpoint ______ strict authentication validation before release.', options: ['A. undergo', 'B. undergoes', 'C. underwent', 'D. undergoing'], answer: 0 },
+          { id: 'IR1', part: '第一部分：詞彙', prompt: '1. The new intelligent scheduling platform has significantly ______ production bottlenecks across all three rolling mills.', options: ['A. alleviated', 'B. hesitated', 'C. exaggerated', 'D. wandered'], answer: 0 },
+          { id: 'IR2', part: '第一部分：詞彙', prompt: '2. Had the engineering team detected the sensor anomaly earlier, the unexpected downtime ______ avoided.', options: ['A. will be', 'B. could have been', 'C. has been', 'D. was being'], answer: 1 },
+          { id: 'IR3', part: '第一部分：詞彙', prompt: '3. Consistent long-term asset allocation requires emotional discipline, ______ when global financial markets experience sharp short-term volatility.', options: ['A. barely', 'B. particularly', 'C. reluctantly', 'D. formerly'], answer: 1 },
+          { id: 'IR4', part: '第一部分：詞彙', prompt: '4. The software architect insisted that every API endpoint ______ strict authentication validation before release.', options: ['A. undergo', 'B. undergoes', 'C. underwent', 'D. undergoing'], answer: 0 },
           { id: 'IR5', part: '第二部分：段落填空 (題組 5~7)', passage: 'Artificial intelligence coding assistants are transforming modern software engineering. Instead of manually writing repetitive boilerplate code, systems analysts can now define clear architectural rules and (5)______ routine implementation tasks to autonomous agents. (6)______, human oversight remains indispensable for validating business logic, security boundaries, and edge-case resilience. Teams that combine structured specifications (7)______ automated verification achieve both faster delivery and higher reliability.', prompt: '5. 請選出第 (5) 題最適合填入空格的選項：', options: ['A. delegate', 'B. prohibit', 'C. pretend', 'D. offend'], answer: 0 },
           { id: 'IR6', part: '第二部分：段落填空 (題組 5~7)', prompt: '6. 請選出第 (6) 題最適合填入空格的選項：', options: ['A. Otherwise', 'B. Nevertheless', 'C. For instance', 'D. As a result of'], answer: 1 },
           { id: 'IR7', part: '第二部分：段落填空 (題組 5~7)', prompt: '7. 請選出第 (7) 題最適合填入空格的選項：', options: ['A. with', 'B. from', 'C. into', 'D. over'], answer: 0 },
@@ -853,7 +887,7 @@
           { id: 'IS2', part: '第二部分：純音聽回答問題 (Answer Questions - 15秒)', audioOnly: true, timeLimitSec: 15, audioText: 'How has technology or artificial intelligence helped you improve efficiency at work?', expectedKeywords: ['technology', 'ai', 'efficiency', 'work', 'automate', 'code', 'schedule', 'data', 'time', 'system'], instruction: '【題目不印在試卷上】請點擊「耳機播音 2 次」，聽完問題後於 15 秒內錄音回答。' },
           { id: 'IS3', part: '第二部分：純音聽回答問題 (Answer Questions - 15秒)', audioOnly: true, timeLimitSec: 15, audioText: 'What factors do you consider most important when making a long-term financial or learning plan?', expectedKeywords: ['long-term', 'plan', 'risk', 'goal', 'consistent', 'time', 'discipline', 'asset', 'future'], instruction: '【題目不印在試卷上】請點擊「耳機播音 2 次」，聽完問題後於 15 秒內錄音回答。' },
           { id: 'IS4', part: '第二部分：純音聽回答問題 (Answer Questions - 30秒)', audioOnly: true, timeLimitSec: 30, audioText: 'Describe a challenge you recently solved in a project and explain what you learned from the experience.', expectedKeywords: ['challenge', 'project', 'solved', 'system', 'team', 'learned', 'problem', 'solution', 'improve'], instruction: '【題目不印在試卷上】請點擊「耳機播音 2 次」，聽完問題後於 30 秒內錄音詳細回答。' },
-          { id: 'IS5', part: '第三部分：看圖敘述 (Picture Description - 45秒)', audioOnly: false, timeLimitSec: 45, audioText: 'Please describe the smart work and healthy lifestyle balance shown in the diagram, and share your personal view.', expectedKeywords: ['balance', 'work', 'health', 'exercise', 'family', 'technology', 'schedule', 'important'], instruction: '【看圖敘述】請根據主題「智慧工作、運動訓練與家庭生活平衡」，於 45 秒內以英語進行連貫口頭敘述。' }
+          { id: 'IS5', part: '第三部分：看圖敘述 (Picture Description - 45秒)', audioOnly: false, timeLimitSec: 45, svgType: 'balance', printedQuestions: ['1. 圖中的三個部分分別是什麼？', '2. 你覺得這樣安排一週好嗎？為什麼？', '3. 你自己會怎麼調整？'], audioText: 'Please describe the work, running, and home balance shown in the picture, and share your personal view.', expectedKeywords: ['balance', 'work', 'health', 'exercise', 'family', 'technology', 'schedule', 'important'], instruction: '【試卷印有圖與問題】請看圖後直接回答，不必把題號唸出來。' }
         ],
         writing: {
           translation: {
@@ -956,8 +990,9 @@
         timerInterval: null,
         lastCheckpoint: '尚未開始',
         listeningAnswers: {},
+        listeningPlayed: {},
         readingAnswers: {},
-        speakingScores: {}, // id -> { playedTwice, recorded, transcript, fluencyBand, grammarBand, score100, showScript }
+        speakingScores: {}, // id -> { playedTwice, recorded, transcript, fluencyBand, grammarBand, score100 }
         writingAnswers: {
           s1: '',
           s2: '',
@@ -1049,6 +1084,75 @@
       }, 4200);
     }
 
+    let examLeaveIntent = null;
+
+    function examStageLabel(stageName) {
+      const labels = {
+        listening: '一階聽力',
+        reading: '一階閱讀',
+        speaking: '二階音聽口說',
+        writing: '二階寫作'
+      };
+      return labels[stageName] || '目前程序';
+    }
+
+    function examStayText() {
+      const stage = examStageLabel(state.activeStage);
+      const checkpoint = state.exam && state.exam.lastCheckpoint && state.exam.lastCheckpoint !== '尚未開始'
+        ? state.exam.lastCheckpoint
+        : stage;
+      return `目前程序：${stage}（${checkpoint}）`;
+    }
+
+    function showExamLeaveGuard(opts) {
+      if (examLeaveIntent) return;
+      const root = document.getElementById('exam-leave-guard');
+      if (!root) {
+        if (opts && typeof opts.onLeave === 'function') opts.onLeave();
+        return;
+      }
+      examLeaveIntent = opts || {};
+      const title = document.getElementById('exam-leave-guard-title');
+      const body = document.getElementById('exam-leave-guard-body');
+      const where = document.getElementById('exam-leave-guard-where');
+      const stay = document.getElementById('exam-leave-guard-stay');
+      const go = document.getElementById('exam-leave-guard-go');
+      if (title) title.textContent = examLeaveIntent.title || '您可能誤觸而離開目前程序';
+      if (body) body.textContent = examLeaveIntent.body || '';
+      if (where) where.textContent = examLeaveIntent.where || examStayText();
+      if (stay) stay.textContent = examLeaveIntent.stayLabel || '留在目前程序';
+      if (go) {
+        if (typeof examLeaveIntent.onLeave === 'function') {
+          go.classList.remove('hidden');
+          go.textContent = examLeaveIntent.leaveLabel || '確認離開';
+        } else {
+          go.classList.add('hidden');
+        }
+      }
+      root.classList.remove('hidden');
+      root.classList.add('flex');
+      if (stay) stay.focus();
+    }
+
+    function dismissExamLeaveGuard(confirmed) {
+      const intent = examLeaveIntent;
+      examLeaveIntent = null;
+      const root = document.getElementById('exam-leave-guard');
+      if (root) {
+        root.classList.add('hidden');
+        root.classList.remove('flex');
+      }
+      if (confirmed && intent && typeof intent.onLeave === 'function') intent.onLeave();
+    }
+
+    function armExamBackGuard() {
+      if (!state.exam || !state.exam.active) return;
+      try {
+        if (history.state && history.state.geptExamGuard) return;
+        history.pushState({ geptExamGuard: 1 }, '');
+      } catch (e) {}
+    }
+
     // =========================================================================
     // 3. GOOGLE AUTH AUTO-CHECK & AUTOMATIC CHINESE NAME RETRIEVAL
     //    (1. 透過檢核 Google 帳號驗證，若能取得帳號則直接進入，否則必需登入)
@@ -1137,6 +1241,111 @@
       if (!cap || typeof cap.getPlatform !== 'function' || cap.getPlatform() !== 'android') return false;
       if (typeof cap.isNativePlatform === 'function' && !cap.isNativePlatform()) return false;
       return true;
+    }
+
+    function readLocalAppBuild() {
+      const build = window.GEPT_APP_BUILD || {};
+      const versionCode = Number(build.versionCode || 0);
+      return {
+        versionCode: Number.isFinite(versionCode) ? versionCode : 0,
+        versionName: String(build.versionName || '').trim(),
+        builtAt: String(build.builtAt || '').trim()
+      };
+    }
+
+    function paintAppVersionPill(text, tone) {
+      const pill = document.getElementById('app-version-pill');
+      if (!pill) return;
+      const tones = {
+        ok: 'bg-emerald-500/15 text-emerald-200 border-emerald-400/40',
+        warn: 'bg-amber-500/20 text-amber-100 border-amber-300/50',
+        idle: 'bg-slate-700 text-slate-100 border-slate-500'
+      };
+      pill.textContent = text;
+      pill.className = 'inline-flex items-center text-xs px-2 py-0.5 rounded-full border ' + (tones[tone] || tones.idle);
+    }
+
+    function setAppVersionBanner(text) {
+      const banner = document.getElementById('app-version-banner');
+      if (!banner) return;
+      if (!text) {
+        banner.textContent = '';
+        banner.classList.add('hidden');
+        document.body.classList.remove('pb-16');
+        return;
+      }
+      banner.textContent = text;
+      banner.classList.remove('hidden');
+      document.body.classList.add('pb-16');
+    }
+
+    function showOutdatedVersionGate(message) {
+      const gate = document.getElementById('app-version-gate');
+      const body = document.getElementById('app-version-gate-body');
+      if (body) body.textContent = message;
+      if (!gate) return;
+      gate.classList.remove('hidden');
+      gate.classList.add('flex');
+    }
+
+    function hideOutdatedVersionGate() {
+      const gate = document.getElementById('app-version-gate');
+      if (!gate) return;
+      gate.classList.add('hidden');
+      gate.classList.remove('flex');
+    }
+
+    async function checkInstalledAppVersion() {
+      if (!isAndroidTabletApp()) return;
+      const local = readLocalAppBuild();
+      const localName = local.versionName || '未標示';
+      const localLabel = local.versionCode > 0 ? (localName + '（代碼 ' + local.versionCode + '）') : localName;
+      paintAppVersionPill(local.versionCode > 0 ? ('版次 ' + localName) : '版次未標示', 'idle');
+      if (!(local.versionCode > 0)) {
+        paintAppVersionPill('版次未標示', 'warn');
+        setAppVersionBanner('此安裝檔沒有版次。請用 build-apk.bat 重新編譯後再安裝。');
+        return;
+      }
+      const base = resolveGasWebhookUrl();
+      if (!base) {
+        paintAppVersionPill('版次 ' + localName, 'warn');
+        setAppVersionBanner('無法確認是否為最新版：尚未設定試算表網址。目前安裝 ' + localLabel + '。');
+        return;
+      }
+      try {
+        const joiner = base.indexOf('?') >= 0 ? '&' : '?';
+        const url = base + joiner + 'action=appVersion&t=' + Date.now();
+        const resp = await fetch(url, { method: 'GET', cache: 'no-store', redirect: 'follow' });
+        const text = await resp.text();
+        const start = text.indexOf('{');
+        const end = text.lastIndexOf('}');
+        if (start < 0 || end <= start) throw new Error('not json');
+        const remote = JSON.parse(text.slice(start, end + 1));
+        if (!remote || remote.ok === false) throw new Error((remote && remote.error) || 'error');
+        if (!remote.found || !(Number(remote.versionCode) > 0)) {
+          paintAppVersionPill('版次 ' + localName, 'warn');
+          setAppVersionBanner('試算表頁籤「App版次」還沒有最新版紀錄。目前安裝 ' + localLabel + '。請設計者部署 gas/Code.gs 後再編譯，或執行 publish-app-version.bat。');
+          return;
+        }
+        const remoteCode = Number(remote.versionCode);
+        const remoteLabel = String(remote.versionName || remoteCode) + '（代碼 ' + remoteCode + '）';
+        if (remoteCode > local.versionCode) {
+          paintAppVersionPill('版次 ' + localName + '，不是最新', 'warn');
+          showOutdatedVersionGate('目前安裝的是 ' + localLabel + '。最新版是 ' + remoteLabel + '。請監考人員安裝新的程式。更新前，題目可能與最新版不同。');
+          setAppVersionBanner('這台平板不是最新版。目前安裝 ' + localLabel + '，最新為 ' + remoteLabel + '。');
+          return;
+        }
+        if (remoteCode < local.versionCode) {
+          paintAppVersionPill('版次 ' + localName, 'warn');
+          setAppVersionBanner('這台平板的版次比試算表還新。目前安裝 ' + localLabel + '，試算表記得是 ' + remoteLabel + '。請設計者確認頁籤「App版次」已寫入，或執行 publish-app-version.bat。');
+          return;
+        }
+        paintAppVersionPill('版次 ' + localName, 'ok');
+        setAppVersionBanner('');
+      } catch (err) {
+        paintAppVersionPill('版次 ' + localName, 'warn');
+        setAppVersionBanner('無法確認這台平板是不是最新版。目前安裝 ' + localLabel + '。請檢查網路後重新開啟。');
+      }
     }
 
     function androidPlugin(name) {
@@ -1414,34 +1623,46 @@
         const logoutBtn = document.getElementById('btn-header-logout');
         if (logoutBtn) {
           logoutBtn.addEventListener('click', () => {
+            const runLogout = () => {
+              if (state.exam.active) {
+                syncCurrentExamToSheet('中途關閉', '考生於測驗中點擊登出，系統自動儲存當下成績');
+                stopExamTimer();
+                state.exam.active = false;
+                const timerBar = document.getElementById('global-timer-bar');
+                if (timerBar) {
+                  timerBar.classList.add('hidden');
+                  timerBar.classList.remove('flex');
+                }
+              }
+              const signedOutEmail = state.user.email;
+              if (isAndroidTabletApp()) signOutAndroidGoogle();
+              if (window.google && window.google.accounts && window.google.accounts.id) {
+                try { window.google.accounts.id.disableAutoSelect(); } catch (e) {}
+                if (signedOutEmail) {
+                  try { window.google.accounts.id.revoke(signedOutEmail, () => {}); } catch (e) {}
+                }
+              }
+              state.user = { chineseName: '', email: '', picture: '', authMode: '', loggedIn: false };
+              try {
+                sessionStorage.setItem('gept_explicit_logout_v5', '1');
+                sessionStorage.removeItem('gept_google_auth_session_v5');
+                localStorage.removeItem('gept_google_verified_account_v4');
+              } catch (e) {}
+              renderHeaderAuth();
+              updateActiveView();
+              mountGoogleSignIn(false);
+              showToast('已登出 Google 帳號', '請重新使用 Google 帳號登入。', 'amber');
+            };
             if (state.exam.active) {
-              syncCurrentExamToSheet('中途關閉', '考生於測驗中點擊登出，系統自動儲存當下成績');
-              stopExamTimer();
-              state.exam.active = false;
-              const timerBar = document.getElementById('global-timer-bar');
-              if (timerBar) {
-                timerBar.classList.add('hidden');
-                timerBar.classList.remove('flex');
-              }
+              showExamLeaveGuard({
+                title: '誤觸／離開目前程序',
+                body: '偵測到可能誤觸登出。確認後會離開測驗，並把這一場存成中途關閉。',
+                leaveLabel: '確認登出並離開',
+                onLeave: runLogout
+              });
+              return;
             }
-            const signedOutEmail = state.user.email;
-            if (isAndroidTabletApp()) signOutAndroidGoogle();
-            if (window.google && window.google.accounts && window.google.accounts.id) {
-              try { window.google.accounts.id.disableAutoSelect(); } catch (e) {}
-              if (signedOutEmail) {
-                try { window.google.accounts.id.revoke(signedOutEmail, () => {}); } catch (e) {}
-              }
-            }
-            state.user = { chineseName: '', email: '', picture: '', authMode: '', loggedIn: false };
-            try {
-              sessionStorage.setItem('gept_explicit_logout_v5', '1');
-              sessionStorage.removeItem('gept_google_auth_session_v5');
-              localStorage.removeItem('gept_google_verified_account_v4');
-            } catch (e) {}
-            renderHeaderAuth();
-            updateActiveView();
-            mountGoogleSignIn(false);
-            showToast('已登出 Google 帳號', '請重新使用 Google 帳號登入。', 'amber');
+            runLogout();
           });
         }
         if (welcomeName) welcomeName.textContent = state.user.chineseName;
@@ -1548,11 +1769,37 @@
       const hideBrand = !!state.brandBarHidden;
       nav.classList.toggle('is-scroll-hidden', hideNav);
       brand.classList.toggle('is-scroll-hidden', hideBrand);
+      subnav.classList.toggle('is-scroll-hidden', hideNav);
+      header.classList.toggle('is-scroll-collapsed', hideBrand && hideNav);
+      placeExamTimer();
+    }
+
+    function placeExamTimer() {
       const timer = document.getElementById('global-timer-bar');
-      const timerVisible = !!(timer && !timer.classList.contains('hidden'));
-      const hideSubnav = hideNav && !timerVisible;
-      subnav.classList.toggle('is-scroll-hidden', hideSubnav);
-      header.classList.toggle('is-scroll-collapsed', hideBrand && hideSubnav);
+      const tabs = document.getElementById('exam-stage-tabs-sticky');
+      if (!timer) return;
+      const visible = !timer.classList.contains('hidden') && state.exam && state.exam.active;
+      const dock = visible && state.activeTab === 'exam';
+      if (tabs) {
+        tabs.classList.toggle('timer-docked', dock);
+        tabs.style.paddingRight = dock ? ((timer.offsetWidth || 200) + 20) + 'px' : '';
+      }
+      if (!visible) {
+        timer.style.top = '';
+        return;
+      }
+      const header = document.querySelector('header');
+      const headerBottom = header && getComputedStyle(header).display !== 'none'
+        ? header.getBoundingClientRect().bottom
+        : 0;
+      let top = headerBottom + 8;
+      if (state.activeTab === 'exam' && tabs) {
+        const rect = tabs.getBoundingClientRect();
+        const timerH = timer.offsetHeight || 44;
+        const aligned = rect.top + Math.max(6, (rect.height - timerH) / 2);
+        top = Math.max(headerBottom + 6, aligned);
+      }
+      timer.style.top = Math.round(top) + 'px';
     }
 
     function syncStickyLayout() {
@@ -1569,6 +1816,7 @@
       const tabsH = tabsStick && activeTabs && !activeTabs.closest('.hidden') ? activeTabs.offsetHeight : 0;
       document.documentElement.style.setProperty('--active-stage-tabs-h', tabsH + 'px');
       fitSheetRecordsHeight();
+      placeExamTimer();
     }
 
     function fitSheetRecordsHeight() {
@@ -2438,30 +2686,82 @@
       }
     }
 
-    // SVG Illustrations for Listening Part 1
-    function getListeningSvg(svgType) {
-      if (svgType === 'coffee') {
-        return `<svg class="w-28 h-24 rounded-lg bg-amber-50 border border-amber-200 p-2 shrink-0" viewBox="0 0 120 90" fill="none">
-          <rect x="20" y="68" width="80" height="8" rx="3" fill="#78350F"/>
-          <path d="M42 28 H78 L68 52 H52 Z" fill="#D97706" stroke="#78350F" stroke-width="2"/>
-          <rect x="46" y="52" width="28" height="16" rx="3" fill="#FEF3C7" stroke="#78350F" stroke-width="2"/>
-          <path d="M35 14 Q60 10 60 26" stroke="#0284C7" stroke-width="3" stroke-linecap="round"/>
-          <circle cx="60" cy="22" r="2.5" fill="#0284C7"/>
-        </svg>`;
+    function getListeningSvg(svgType, sizeClass) {
+      const cls = sizeClass || 'w-28 h-24';
+      const frame = (bg, border, inner) => `<svg class="${cls} rounded-lg ${bg} border ${border} p-1 shrink-0" viewBox="0 0 120 90" fill="none">${inner}</svg>`;
+      const scenes = {
+        coffee: frame('bg-amber-50', 'border-amber-200', '<rect x="20" y="68" width="80" height="8" rx="3" fill="#78350F"/><path d="M42 28 H78 L68 52 H52 Z" fill="#D97706" stroke="#78350F" stroke-width="2"/><rect x="46" y="52" width="28" height="16" rx="3" fill="#FEF3C7" stroke="#78350F" stroke-width="2"/><path d="M35 14 Q60 10 60 26" stroke="#0284C7" stroke-width="3" stroke-linecap="round"/><circle cx="60" cy="22" r="2.5" fill="#0284C7"/>'),
+        runner: frame('bg-emerald-50', 'border-emerald-200', '<path d="M10 72 Q60 62 110 72" stroke="#059669" stroke-width="4"/><circle cx="62" cy="24" r="7" fill="#0F172A"/><path d="M58 32 L52 50 L38 58 M58 32 L72 44 L84 38 M52 50 L68 58 L74 70" stroke="#4F46E5" stroke-width="4" stroke-linecap="round"/>'),
+        schedule: frame('bg-indigo-50', 'border-indigo-200', '<rect x="16" y="16" width="88" height="58" rx="6" fill="#fff" stroke="#4F46E5" stroke-width="2"/><rect x="28" y="46" width="14" height="20" fill="#94A3B8"/><rect x="52" y="28" width="14" height="38" fill="#4F46E5"/><rect x="76" y="38" width="14" height="28" fill="#60A5FA"/>'),
+        morning: frame('bg-sky-50', 'border-sky-200', '<circle cx="22" cy="22" r="8" fill="#F59E0B"/><path d="M8 68 Q40 58 78 68" stroke="#059669" stroke-width="4"/><circle cx="58" cy="28" r="6" fill="#0F172A"/><path d="M54 36 L48 50 L36 56 M54 36 L68 46" stroke="#4F46E5" stroke-width="3" stroke-linecap="round"/><rect x="86" y="40" width="18" height="14" rx="2" fill="#FEF3C7" stroke="#92400E"/>'),
+        balance: frame('bg-violet-50', 'border-violet-200', '<rect x="10" y="22" width="28" height="48" rx="4" fill="#fff" stroke="#4F46E5"/><rect x="46" y="22" width="28" height="48" rx="4" fill="#fff" stroke="#059669"/><rect x="82" y="22" width="28" height="48" rx="4" fill="#fff" stroke="#D97706"/><text x="24" y="50" text-anchor="middle" font-size="11" fill="#4F46E5">Work</text><text x="60" y="50" text-anchor="middle" font-size="11" fill="#059669">Run</text><text x="96" y="50" text-anchor="middle" font-size="11" fill="#D97706">Home</text>'),
+        desk: frame('bg-slate-50', 'border-slate-300', '<rect x="18" y="28" width="84" height="36" rx="4" fill="#fff" stroke="#334155" stroke-width="2"/><rect x="48" y="64" width="24" height="10" fill="#94A3B8"/><text x="60" y="50" text-anchor="middle" font-size="12" fill="#0F172A">Front desk</text>'),
+        t610: frame('bg-amber-50', 'border-amber-300', '<circle cx="60" cy="42" r="24" stroke="#92400E" stroke-width="3"/><path d="M60 42 L60 26 M60 42 L72 48" stroke="#92400E" stroke-width="3" stroke-linecap="round"/><text x="60" y="80" text-anchor="middle" font-size="12" fill="#92400E">6:10</text>'),
+        t730: frame('bg-orange-50', 'border-orange-300', '<circle cx="60" cy="42" r="24" stroke="#C2410C" stroke-width="3"/><path d="M60 42 L72 30 M60 42 L60 58" stroke="#C2410C" stroke-width="3" stroke-linecap="round"/><text x="60" y="80" text-anchor="middle" font-size="12" fill="#C2410C">7:30</text>'),
+        noon: frame('bg-yellow-50', 'border-yellow-300', '<circle cx="60" cy="40" r="16" fill="#FACC15"/><text x="60" y="78" text-anchor="middle" font-size="12" fill="#A16207">12:00</text>'),
+        month: frame('bg-slate-50', 'border-slate-300', '<rect x="24" y="18" width="72" height="56" rx="4" fill="#fff" stroke="#334155"/><text x="60" y="50" text-anchor="middle" font-size="13" fill="#0F172A">Next month</text>'),
+        computer: frame('bg-sky-50', 'border-sky-300', '<rect x="28" y="20" width="64" height="40" rx="3" fill="#fff" stroke="#0369A1" stroke-width="2"/><rect x="50" y="62" width="20" height="6" fill="#0369A1"/><text x="60" y="44" text-anchor="middle" font-size="11" fill="#0369A1">Computer</text>'),
+        closed: frame('bg-rose-50', 'border-rose-300', '<rect x="22" y="24" width="76" height="40" rx="4" fill="#fff" stroke="#BE123C" stroke-width="2"/><text x="60" y="48" text-anchor="middle" font-size="14" fill="#BE123C">CLOSED</text>'),
+        bread: frame('bg-amber-50', 'border-amber-300', '<ellipse cx="42" cy="48" rx="18" ry="12" fill="#FBBF24" stroke="#92400E"/><ellipse cx="74" cy="48" rx="18" ry="12" fill="#F59E0B" stroke="#92400E"/><text x="60" y="78" text-anchor="middle" font-size="11" fill="#92400E">2 loaves</text>'),
+        cake: frame('bg-pink-50', 'border-pink-300', '<path d="M36 58 L44 32 H76 L84 58 Z" fill="#FB7185" stroke="#9F1239"/><text x="60" y="78" text-anchor="middle" font-size="11" fill="#9F1239">Cake</text>'),
+        card: frame('bg-indigo-50', 'border-indigo-300', '<rect x="28" y="26" width="64" height="40" rx="4" fill="#fff" stroke="#4338CA" stroke-width="2"/><text x="60" y="50" text-anchor="middle" font-size="12" fill="#4338CA">Student card</text>'),
+        friends: frame('bg-emerald-50', 'border-emerald-300', '<circle cx="42" cy="34" r="8" fill="#0F172A"/><circle cx="78" cy="34" r="8" fill="#0F172A"/><text x="60" y="74" text-anchor="middle" font-size="11" fill="#065F46">3 friends</text>'),
+        cash: frame('bg-green-50', 'border-green-300', '<rect x="30" y="28" width="60" height="34" rx="4" fill="#fff" stroke="#15803D" stroke-width="2"/><text x="60" y="50" text-anchor="middle" font-size="16" fill="#15803D">$</text>'),
+        monday: frame('bg-slate-50', 'border-slate-300', '<rect x="24" y="20" width="72" height="52" rx="4" fill="#fff" stroke="#334155"/><text x="60" y="50" text-anchor="middle" font-size="13" fill="#0F172A">Monday</text>'),
+        saturday: frame('bg-violet-50', 'border-violet-300', '<rect x="24" y="20" width="72" height="52" rx="4" fill="#fff" stroke="#6D28D9"/><text x="60" y="50" text-anchor="middle" font-size="12" fill="#6D28D9">Saturday</text>'),
+        everyday: frame('bg-sky-50', 'border-sky-300', '<text x="60" y="50" text-anchor="middle" font-size="13" fill="#0369A1">Every day</text>'),
+        night: frame('bg-slate-900', 'border-slate-700', '<circle cx="78" cy="28" r="10" fill="#F8FAFC"/><text x="60" y="68" text-anchor="middle" font-size="12" fill="#E2E8F0">Night</text>'),
+        home: frame('bg-orange-50', 'border-orange-300', '<path d="M20 48 L60 22 L100 48 V74 H20 Z" fill="#FFF7ED" stroke="#C2410C" stroke-width="2"/><text x="60" y="66" text-anchor="middle" font-size="12" fill="#C2410C">Home</text>')
+      };
+      return scenes[svgType] || scenes.schedule;
+    }
+
+    function listeningFace(part) {
+      const name = part || '';
+      if (name.indexOf('看圖辨義') >= 0) return 'picture-stem';
+      if (name.indexOf('短文聽解') >= 0) return 'picture-choices';
+      return 'printed-choices';
+    }
+
+    function optionLetter(index) {
+      return ['A', 'B', 'C', 'D'][index] || String(index + 1);
+    }
+
+    function listeningInstruction(q) {
+      const face = listeningFace(q.part);
+      if (face === 'picture-stem') return '請看圖。描述只從語音播出，試卷只標示 A、B、C、D。每題只播一次。';
+      if (face === 'picture-choices') return '請聽短文與問題，選出最符合的圖片。題目不印在試卷上。每題只播一次。';
+      if ((q.part || '').indexOf('問答') >= 0) return '請聽英語句子，從印出的回答中選一項。問句不印在試卷上。每題只播一次。';
+      if (q.chartHtml) return '請看圖表，並聽對話或談話與問題。題幹不印出。每題只播一次。';
+      return '請聽語音與問題，從印出的選項作答。題幹不印在試卷上。每題只播一次。';
+    }
+
+    function listeningStemHtml(q) {
+      const face = listeningFace(q.part);
+      if (face === 'picture-stem' && q.svgType) {
+        return `<div class="mb-2">${getListeningSvg(q.svgType, 'w-40 h-32')}</div>`;
       }
-      if (svgType === 'runner') {
-        return `<svg class="w-28 h-24 rounded-lg bg-emerald-50 border border-emerald-200 p-2 shrink-0" viewBox="0 0 120 90" fill="none">
-          <path d="M10 72 Q60 62 110 72" stroke="#059669" stroke-width="4"/>
-          <circle cx="62" cy="24" r="7" fill="#0F172A"/>
-          <path d="M58 32 L52 50 L38 58 M58 32 L72 44 L84 38 M52 50 L68 58 L74 70" stroke="#4F46E5" stroke-width="4" stroke-linecap="round"/>
-        </svg>`;
+      if (q.chartHtml) {
+        return `<div class="mb-2 p-3 rounded-lg bg-white border border-slate-200 inline-block">${q.chartHtml}</div>`;
       }
-      return `<svg class="w-28 h-24 rounded-lg bg-indigo-50 border border-indigo-200 p-2 shrink-0" viewBox="0 0 120 90" fill="none">
-        <rect x="16" y="16" width="88" height="58" rx="6" fill="#fff" stroke="#4F46E5" stroke-width="2"/>
-        <rect x="28" y="46" width="14" height="20" fill="#94A3B8"/>
-        <rect x="52" y="28" width="14" height="38" fill="#4F46E5"/>
-        <rect x="76" y="38" width="14" height="28" fill="#60A5FA"/>
-      </svg>`;
+      return '';
+    }
+
+    function listeningChoiceInner(q, opt, oIdx, revealText) {
+      const face = listeningFace(q.part);
+      if (face === 'picture-choices' && q.optionSvgs && q.optionSvgs[oIdx]) {
+        const caption = revealText ? `<span class="block text-[11px] text-slate-600 mt-1 max-w-[9rem]">${opt}</span>` : '';
+        return `<span class="font-bold mr-2">${optionLetter(oIdx)}.</span>${getListeningSvg(q.optionSvgs[oIdx], 'w-24 h-20')}${caption}`;
+      }
+      if (face === 'picture-stem' && !revealText) {
+        return `<span class="font-bold text-base px-2">${optionLetter(oIdx)}</span>`;
+      }
+      return `<span>${opt}</span>`;
+    }
+
+    function paperTable(caption, rows) {
+      const body = rows.map(row => `<tr><td class="border border-slate-300 px-2 py-1">${row[0]}</td><td class="border border-slate-300 px-2 py-1 font-semibold">${row[1]}</td></tr>`).join('');
+      return `<div class="text-[11px] font-bold text-slate-800 mb-1">${caption}</div><table class="text-[11px] text-slate-700 border-collapse bg-white"><tbody>${body}</tbody></table>`;
     }
 
     // =========================================================================
@@ -2473,12 +2773,12 @@
       container.innerHTML = '';
       const bank = bankForExam(state.exam.level).listening;
 
+      if (!state.exam.listeningPlayed) state.exam.listeningPlayed = {};
       bank.forEach((q, idx) => {
         const selected = state.exam.listeningAnswers[q.id];
+        const played = !!state.exam.listeningPlayed[q.id];
         const card = document.createElement('div');
         card.className = 'p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3';
-
-        const svgHtml = q.svgType ? getListeningSvg(q.svgType) : '';
 
         let optionsHtml = '';
         q.options.forEach((opt, oIdx) => {
@@ -2486,27 +2786,27 @@
           optionsHtml += `
             <label class="flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-colors text-xs sm:text-sm ${isChecked ? 'bg-indigo-50 border-indigo-500 font-semibold text-indigo-950' : 'bg-white border-slate-200 hover:border-slate-300'}">
               <input type="radio" name="listen_${q.id}" value="${oIdx}" ${isChecked ? 'checked' : ''} data-qid="${q.id}" data-qnum="${idx + 1}" class="listen-radio text-indigo-600 focus:ring-indigo-500">
-              <span>${opt}</span>
+              ${listeningChoiceInner(q, opt, oIdx, false)}
             </label>
           `;
         });
+
+        const playButton = played
+          ? `<button type="button" disabled class="px-3 py-1.5 rounded-lg bg-slate-200 text-slate-500 text-xs font-semibold">本題已播出（正試只播一次）</button>`
+          : `<button type="button" data-qid="${q.id}" data-qnum="${idx + 1}" class="btn-play-listening px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm"><span>播放聽力（只播一次）</span></button>`;
 
         card.innerHTML = `
           <div class="flex items-start justify-between gap-3 flex-wrap">
             <div>
               <span class="text-[11px] font-bold text-indigo-600 uppercase">${q.part}</span>
-              <h4 class="text-sm font-bold text-slate-900 mt-0.5">第 ${idx + 1} 題：${q.prompt}</h4>
-              ${q.audioText ? `<p class="text-xs sm:text-sm text-slate-800 mt-1 leading-relaxed">${q.audioText}</p>` : ''}
+              <h4 class="text-sm font-bold text-slate-900 mt-0.5">第 ${idx + 1} 題</h4>
+              <p class="text-xs text-slate-600 mt-0.5">${listeningInstruction(q)}</p>
             </div>
-            <button type="button" data-audio="${encodeURIComponent(q.audioText)}" data-qnum="${idx + 1}" class="btn-play-listening px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm">
-              <span>🔊 播放聽力音檔</span>
-            </button>
+            ${playButton}
           </div>
-          <div class="flex flex-col sm:flex-row gap-4 items-start">
-            ${svgHtml}
-            <div class="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-2">
-              ${optionsHtml}
-            </div>
+          ${listeningStemHtml(q)}
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            ${optionsHtml}
           </div>
         `;
         container.appendChild(card);
@@ -2514,16 +2814,18 @@
 
       container.querySelectorAll('.btn-play-listening').forEach(btn => {
         btn.addEventListener('click', () => {
-          const text = decodeURIComponent(btn.getAttribute('data-audio'));
+          const qid = btn.getAttribute('data-qid');
           const qnum = btn.getAttribute('data-qnum');
+          const q = bank.find(item => item.id === qid);
+          if (!q || state.exam.listeningPlayed[qid]) return;
+          state.exam.listeningPlayed[qid] = true;
           state.exam.lastCheckpoint = `第一階段-聽力第${qnum}題`;
-          btn.innerHTML = '<span>🔊 語音播放中...</span>';
+          btn.innerHTML = '<span>語音播放中（只播一次）</span>';
           btn.disabled = true;
-          speakEnglishOnce(text, state.exam.level === '初級' ? 0.92 : 1.0, () => {
-            btn.innerHTML = '<span>🔈 重新播放音檔 (練習模式)</span>';
-            btn.disabled = false;
+          speakEnglishOnce(q.audioText, state.exam.level === '初級' ? 0.92 : 1.0, () => {
+            renderListeningSection();
+            updateLiveScoreStrip();
           });
-          updateLiveScoreStrip();
         });
       });
 
@@ -2608,19 +2910,30 @@
             fluencyBand: 0,
             grammarBand: 0,
             score100: 0,
-            showScript: !q.audioOnly
+            playedTwice: false
           };
         }
         const sc = state.exam.speakingScores[q.id];
         const card = document.createElement('div');
         card.className = 'p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3';
 
-        const promptDisplay = sc.showScript
-          ? `<div class="p-3 rounded-lg bg-white border border-indigo-200 text-xs sm:text-sm text-slate-800 font-medium">${q.audioText}</div>`
-          : `<div class="p-3 rounded-lg bg-slate-900 text-slate-300 text-xs flex items-center justify-between">
-               <span>🔒 【純音聽模式】依 LTTC 複試規範，題目由耳機連續播出 2 次，試卷不印出題目文字。</span>
-               <button type="button" data-qid="${q.id}" class="btn-toggle-script text-indigo-300 hover:underline ml-2 shrink-0">顯示題目原文</button>
-             </div>`;
+        const isPictureTalk = (q.part || '').indexOf('看圖') >= 0;
+        let promptDisplay = '';
+        if (isPictureTalk) {
+          const questions = (q.printedQuestions || ['請描述圖中的情景，並說出你的看法。'])
+            .map(text => `<li>${text}</li>`).join('');
+          promptDisplay = `<div class="flex flex-col sm:flex-row gap-3 items-start p-3 rounded-lg bg-white border border-indigo-200">
+            ${getListeningSvg(q.svgType || 'balance', 'w-40 h-32')}
+            <div>
+              <div class="text-[11px] font-bold text-indigo-700 mb-1">試卷印有圖片與問題，請直接回答</div>
+              <ol class="list-decimal pl-4 text-xs sm:text-sm text-slate-800 space-y-1">${questions}</ol>
+            </div>
+          </div>`;
+        } else if (!q.audioOnly) {
+          promptDisplay = `<div class="p-3 rounded-lg bg-white border border-indigo-200 text-xs sm:text-sm text-slate-800 font-medium">${q.audioText}</div>`;
+        } else {
+          promptDisplay = `<div class="p-3 rounded-lg bg-slate-900 text-slate-300 text-xs">純音聽：題目由耳機連續播出 2 次，試卷不印題目，作答中不能打開原文。</div>`;
+        }
 
         card.innerHTML = `
           <div class="flex items-start justify-between gap-2 flex-wrap">
@@ -2639,10 +2952,10 @@
           ${promptDisplay}
 
           <div class="flex flex-wrap items-center gap-2.5 pt-1">
-            <button type="button" data-qid="${q.id}" data-qnum="${idx + 1}"
-              class="btn-stage2-play-twice px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm">
-              <span>🎧 1. 耳機播放音聽題目 (連播 2 次)</span>
-            </button>
+            ${q.audioOnly ? `<button type="button" data-qid="${q.id}" data-qnum="${idx + 1}" ${sc.playedTwice ? 'disabled' : ''}
+              class="btn-stage2-play-twice px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm ${sc.playedTwice ? 'opacity-60' : ''}">
+              <span>${sc.playedTwice ? '已連播 2 次' : '1. 耳機播放題目（連播 2 次）'}</span>
+            </button>` : ''}
 
             <button type="button" data-qid="${q.id}" data-qnum="${idx + 1}"
               class="btn-stage2-record px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm">
@@ -2672,15 +2985,6 @@
         container.appendChild(card);
       });
 
-      // Toggle script visibility
-      container.querySelectorAll('.btn-toggle-script').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const qid = btn.getAttribute('data-qid');
-          state.exam.speakingScores[qid].showScript = true;
-          renderSpeakingSection();
-        });
-      });
-
       // Play Twice Audio-Listening Handler
       container.querySelectorAll('.btn-stage2-play-twice').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -2690,6 +2994,7 @@
           const sc = state.exam.speakingScores[qid];
           const statusEl = document.getElementById(`speak-status-${qid}`);
 
+          if (sc.playedTwice) return;
           state.exam.lastCheckpoint = `第二階段-音聽口說第${qnum}題`;
           btn.disabled = true;
           if (statusEl) statusEl.innerHTML = '<span class="text-indigo-600 font-bold">🔊 第 1 次播音中...</span>';
@@ -2700,9 +3005,10 @@
               if (statusEl) statusEl.innerHTML = '<span class="text-indigo-600 font-bold">🔊 第 2 次播音中...</span>';
               speakEnglishOnce(q.audioText, state.exam.level === '初級' ? 0.92 : 1.0, () => {
                 playBeepTone(1046, 250);
+                sc.playedTwice = true;
                 sc.statusText = '✓ 已完成 2 次耳機播音，請錄音作答';
                 if (statusEl) statusEl.innerHTML = '<span class="text-emerald-700 font-bold">🔔 播音完畢 (Beep)！請立即錄音作答</span>';
-                btn.disabled = false;
+                btn.innerHTML = '<span>已連播 2 次</span>';
               });
             }, 1500);
           });
@@ -2840,15 +3146,14 @@
       const w = state.exam.writingAnswers;
 
       if (level === '初級') {
-        if (subtitle) subtitle.textContent = '初級：第一部分單句寫作 3 題 (佔 50%) ＋ 第二部分段落寫作 1 篇約 50 字 (佔 50%)，通過標準 70 分。';
+        if (subtitle) subtitle.textContent = '初級：第一部分單句寫作 3 題 (佔 50%) ＋ 第二部分看圖段落寫作 1 篇約 50 字 (佔 50%)，通過標準 70 分。';
         const sValues = [w.s1 || '', w.s2 || '', w.s3 || ''];
         let sentencesHtml = '';
         bankW.sentences.forEach((sq, idx) => {
           sentencesHtml += `
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <div class="flex items-center justify-between">
+              <div>
                 <span class="text-xs font-bold text-indigo-700">${sq.prompt.replace(/\n/g, '<br>')}</span>
-                <button type="button" data-sidx="${idx}" class="btn-fill-sample-sent text-[11px] text-indigo-600 hover:underline shrink-0 ml-2">填入參考範例</button>
               </div>
               <input type="text" data-sidx="${idx}" value="${sValues[idx].replace(/"/g, '&quot;')}"
                 placeholder="請輸入完整英文句子（注意大小寫與標點符號）..."
@@ -2868,9 +3173,9 @@
               <h4 class="text-sm font-bold text-slate-900">${bankW.essay.title}</h4>
               <div class="flex items-center gap-3 text-xs">
                 <span class="text-slate-600">目前字數：<strong id="essay-word-count" class="text-indigo-700">${wordCount}</strong> 字 (建議約 50 字)</span>
-                <button type="button" id="btn-fill-sample-essay" class="text-indigo-600 hover:underline font-medium">填入高分範例</button>
               </div>
             </div>
+            ${bankW.essay.svgType ? `<div class="flex items-center gap-3">${getListeningSvg(bankW.essay.svgType, 'w-36 h-28')}<p class="text-[11px] text-slate-500">看圖寫作：請描述圖中的情景。</p></div>` : ''}
             <p class="text-xs text-slate-600 leading-relaxed">${bankW.essay.prompt}</p>
             <textarea id="textarea-writing-essay" rows="4" placeholder="請在此撰寫約 50 字的英文段落..."
               class="w-full p-3.5 rounded-xl border border-slate-300 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">${w.essay || ''}</textarea>
@@ -2890,29 +3195,13 @@
           });
         });
 
-        container.querySelectorAll('.btn-fill-sample-sent').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const idx = Number(btn.getAttribute('data-sidx'));
-            const sample = bankW.sentences[idx].sample;
-            if (idx === 0) w.s1 = sample;
-            if (idx === 1) w.s2 = sample;
-            if (idx === 2) w.s3 = sample;
-            evaluateWritingScore(false);
-            renderWritingSection();
-            updateLiveScoreStrip();
-            syncCurrentExamToSheet('進行中');
-          });
-        });
       } else {
         // 中級
         if (subtitle) subtitle.textContent = '中級：第一部分中譯英 1 題 (佔 40%) ＋ 第二部分英文作文 1 篇約 80~120 字 (佔 60%)，通過標準 80 分。';
         const wordCount = (w.essay || '').trim() ? (w.essay || '').trim().split(/\s+/).length : 0;
         container.innerHTML = `
           <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
-            <div class="flex items-center justify-between">
-              <h4 class="text-sm font-bold text-slate-900">${bankW.translation.title}</h4>
-              <button type="button" id="btn-fill-sample-trans" class="text-xs text-indigo-600 hover:underline font-medium">填入中譯英範例</button>
-            </div>
+            <h4 class="text-sm font-bold text-slate-900">${bankW.translation.title}</h4>
             <p class="text-xs text-slate-700 whitespace-pre-line leading-relaxed">${bankW.translation.prompt}</p>
             <textarea id="textarea-writing-trans" rows="3" placeholder="請輸入英文翻譯..."
               class="w-full p-3.5 rounded-xl border border-slate-300 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">${w.trans || ''}</textarea>
@@ -2923,7 +3212,6 @@
               <h4 class="text-sm font-bold text-slate-900">${bankW.essay.title}</h4>
               <div class="flex items-center gap-3 text-xs">
                 <span class="text-slate-600">目前字數：<strong id="essay-word-count" class="text-indigo-700">${wordCount}</strong> 字 (建議 80~120 字)</span>
-                <button type="button" id="btn-fill-sample-essay" class="text-indigo-600 hover:underline font-medium">填入高分範例</button>
               </div>
             </div>
             <p class="text-xs text-slate-600 whitespace-pre-line leading-relaxed">${bankW.essay.prompt}</p>
@@ -2942,16 +3230,6 @@
             updateLiveScoreStrip();
           });
         }
-        const fillTransBtn = document.getElementById('btn-fill-sample-trans');
-        if (fillTransBtn) {
-          fillTransBtn.addEventListener('click', () => {
-            w.trans = bankW.translation.sample;
-            evaluateWritingScore(false);
-            renderWritingSection();
-            updateLiveScoreStrip();
-            syncCurrentExamToSheet('進行中');
-          });
-        }
       }
 
       const essayArea = document.getElementById('textarea-writing-essay');
@@ -2967,16 +3245,6 @@
         });
       }
 
-      const fillEssayBtn = document.getElementById('btn-fill-sample-essay');
-      if (fillEssayBtn) {
-        fillEssayBtn.addEventListener('click', () => {
-          w.essay = bankW.essay.sample;
-          evaluateWritingScore(false);
-          renderWritingSection();
-          updateLiveScoreStrip();
-          syncCurrentExamToSheet('進行中');
-        });
-      }
     }
 
     // =========================================================================
@@ -2992,6 +3260,15 @@
     function startNewExam(level, options) {
       if (!state.user || !state.user.loggedIn) {
         updateActiveView();
+        return false;
+      }
+      if (state.exam.active && !(options && options.confirmedRestart)) {
+        showExamLeaveGuard({
+          title: '誤觸／離開目前程序',
+          body: '偵測到可能誤觸而另開一場測驗。確認後會離開目前程序並產生新的測驗序號；先前那一筆不會改成已交卷。',
+          leaveLabel: '確認離開並重考',
+          onLeave: () => startNewExam(level, Object.assign({}, options || {}, { confirmedRestart: true }))
+        });
         return false;
       }
 
@@ -3012,6 +3289,7 @@
         timerInterval: null,
         lastCheckpoint: '第一階段-聽力第1題',
         listeningAnswers: {},
+        listeningPlayed: {},
         readingAnswers: {},
         speakingScores: {},
         writingAnswers: { s1: '', s2: '', s3: '', trans: '', essay: '', gradedScore: 0, feedback: '' }
@@ -3069,7 +3347,36 @@
 
       state.activeTab = 'exam';
       updateActiveView();
+      armExamBackGuard();
       return true;
+    }
+
+    function requestExamStage(stageName) {
+      if (!state.exam.active || state.activeTab !== 'exam' || state.activeStage === stageName) {
+        switchExamStage(stageName);
+        return;
+      }
+      const fromLabel = examStageLabel(state.activeStage);
+      const toLabel = examStageLabel(stageName);
+      showExamLeaveGuard({
+        title: '誤觸／離開目前程序',
+        body: `偵測到可能誤觸，正要離開「${fromLabel}」，改到「${toLabel}」。若不是要換科，請留在目前程序。測驗仍在計時。`,
+        leaveLabel: `確認前往${toLabel}`,
+        onLeave: () => switchExamStage(stageName)
+      });
+    }
+
+    function requestLeaveExamScreen(targetLabel, onLeave) {
+      if (!state.exam.active || state.activeTab !== 'exam') {
+        onLeave();
+        return;
+      }
+      showExamLeaveGuard({
+        title: '誤觸／離開目前程序',
+        body: `偵測到可能誤觸，正要離開測驗畫面，前往「${targetLabel}」。測驗仍在計時。`,
+        leaveLabel: '確認離開',
+        onLeave: onLeave
+      });
     }
 
     function switchExamStage(stageName) {
@@ -3315,7 +3622,7 @@
         headerDiv.innerHTML = `
           <div>
             <h3 class="text-base font-bold text-slate-900">
-              ${isListening ? '🎧 第一階段：聽力自主練習（無限次重播音檔・附原文詳解）' : '📖 第一階段：閱讀自主練習（逐題即時批改・完整語法解析）'}
+              ${isListening ? '🎧 第一階段：聽力自主練習（可重播；作答後才顯示原文）' : '📖 第一階段：閱讀自主練習（詞彙、段落填空與雙文本）'}
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">點選任一選項後，系統會立即告訴您全體考生答對比例與專屬鼓勵訊息！</p>
           </div>
@@ -3331,7 +3638,6 @@
           const card = document.createElement('div');
           card.className = 'p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3';
 
-          const svgHtml = q.svgType ? getListeningSvg(q.svgType) : '';
           const passageHtml = q.passage
             ? `<div class="p-3.5 rounded-lg bg-white border border-slate-200 text-xs sm:text-sm text-slate-700 whitespace-pre-line leading-relaxed mb-2">${q.passage}</div>`
             : '';
@@ -3350,7 +3656,7 @@
               <label class="flex items-center justify-between gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors text-xs sm:text-sm ${optStyle}">
                 <span class="flex items-center gap-2">
                   <input type="radio" name="prac_${q.id}" value="${oIdx}" ${userChoice === oIdx ? 'checked' : ''} data-qid="${q.id}" data-idx="${idx}" class="prac-choice-radio text-indigo-600 focus:ring-indigo-500">
-                  <span>${opt}</span>
+                  ${isListening ? listeningChoiceInner(q, opt, oIdx, hasAnswered) : `<span>${opt}</span>`}
                 </span>
                 ${hasAnswered && oIdx === q.answer ? '<span class="text-xs font-bold text-emerald-700">✓ 正解</span>' : ''}
                 ${hasAnswered && oIdx === userChoice && !isCorrect ? '<span class="text-xs font-bold text-rose-600">✗ 您的選擇</span>' : ''}
@@ -3386,8 +3692,8 @@
             <div class="flex items-start justify-between gap-3 flex-wrap">
               <div>
                 <span class="text-[11px] font-bold text-indigo-600 uppercase">${q.part}</span>
-                <h4 class="text-sm font-bold text-slate-900 mt-0.5">第 ${idx + 1} 題：${q.prompt}</h4>
-                ${isListening && q.audioText ? `<p class="text-xs sm:text-sm text-slate-800 mt-1 leading-relaxed">${q.audioText}</p>` : ''}
+                <h4 class="text-sm font-bold text-slate-900 mt-0.5">第 ${idx + 1} 題${isListening ? '' : '：' + q.prompt}</h4>
+                ${isListening ? `<p class="text-xs text-slate-600 mt-0.5">${listeningInstruction(q)}</p>` : ''}
               </div>
               <div class="flex items-center gap-2">
                 <span class="text-[11px] px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-medium">歷屆答對率約 ${meta.peerRate}%</span>
@@ -3399,11 +3705,9 @@
               </div>
             </div>
             ${passageHtml}
-            <div class="flex flex-col sm:flex-row gap-4 items-start">
-              ${svgHtml}
-              <div class="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-2">
-                ${optionsHtml}
-              </div>
+            ${isListening ? listeningStemHtml(q) : ''}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              ${optionsHtml}
             </div>
             ${feedbackHtml}
           `;
@@ -3470,8 +3774,9 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
                 練習評分：${sr.score100 > 0 ? sr.score100 + ' / 100' : '尚未錄音'}
               </span>
             </div>
+            ${(q.part || '').indexOf('看圖') >= 0 ? `<div class="flex flex-col sm:flex-row gap-3 items-start p-3 rounded-lg bg-white border border-indigo-200">${getListeningSvg(q.svgType || 'balance', 'w-36 h-28')}<ol class="list-decimal pl-4 text-xs text-slate-800 space-y-1">${(q.printedQuestions || []).map(text => '<li>' + text + '</li>').join('')}</ol></div>` : ''}
             <div class="p-3 rounded-lg bg-white border border-indigo-100 text-xs sm:text-sm text-slate-800">
-              <strong>🎧 音聽題目原文（練習模式公開）：</strong>${q.audioText}
+              <strong>🎧 練習可看原文：</strong>${q.audioText}
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <button type="button" data-audio="${encodeURIComponent(q.audioText)}" class="btn-prac-speak-audio px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold">
@@ -3626,26 +3931,63 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
       } else if (p.stage === 'writing') {
         const bankW = bank.writing;
         const wr = p.writingRes;
+        const isElem = p.level === '初級';
+        const qAttr = (value) => String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
         const headerDiv = document.createElement('div');
-        headerDiv.className = 'stage-sticky-head stage-sticky-head-inset border-b border-slate-100 flex items-center justify-between flex-wrap gap-2';
+        headerDiv.className = 'stage-sticky-head stage-sticky-head-inset border-b border-slate-100';
         headerDiv.innerHTML = `
-          <div>
-            <h3 class="text-base font-bold text-slate-900">✍️ 第二階段：寫作自主練習與 AI 批改</h3>
-            <p class="text-xs text-slate-500 mt-0.5">${bankW.essay.title} — 寫完後點擊「取得鼓勵回饋與批改」，隨時檢視高分範文！</p>
-          </div>
-          <button type="button" id="btn-prac-fill-essay" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold">
-            ✨ 填入高分參考範文觀摩
-          </button>
+          <h3 class="text-base font-bold text-slate-900">✍️ 第二階段：寫作自主練習與 AI 批改</h3>
+          <p class="text-xs text-slate-500 mt-0.5">${isElem ? '單句寫作 3 題＋看圖段落寫作' : '中譯英＋英文作文'}。各題可填入參考範例觀摩，作文寫完後再取得鼓勵回饋。</p>
         `;
         area.appendChild(headerDiv);
+
+        const sentValues = [wr.s1 || '', wr.s2 || '', wr.s3 || ''];
+        let taskHtml = '';
+        if (isElem && bankW.sentences) {
+          const sentencesHtml = bankW.sentences.map((sq, idx) => `
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <div class="flex items-start justify-between gap-2">
+                <span class="text-xs font-bold text-indigo-700">${String(sq.prompt || '').replace(/\n/g, '<br>')}</span>
+                <button type="button" data-sidx="${idx}" class="btn-prac-fill-sent text-[11px] text-indigo-600 hover:underline shrink-0">填入參考範例</button>
+              </div>
+              <input type="text" data-sidx="${idx}" value="${qAttr(sentValues[idx])}"
+                placeholder="請輸入完整英文句子..."
+                class="prac-writing-sent w-full px-3.5 py-2 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          `).join('');
+          taskHtml = `
+            <div class="space-y-3">
+              <h4 class="text-sm font-bold text-slate-900">第一部分：單句寫作</h4>
+              ${sentencesHtml}
+            </div>
+          `;
+        } else if (bankW.translation) {
+          taskHtml = `
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <h4 class="text-sm font-bold text-slate-900">${bankW.translation.title}</h4>
+                <button type="button" id="btn-prac-fill-trans" class="text-xs text-indigo-600 hover:underline font-medium shrink-0">填入參考範例</button>
+              </div>
+              <p class="text-xs text-slate-700 whitespace-pre-line leading-relaxed">${bankW.translation.prompt}</p>
+              <textarea id="prac-trans-textarea" rows="3" placeholder="請輸入英文翻譯..."
+                class="w-full p-3.5 rounded-xl border border-slate-300 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">${qAttr(wr.trans)}</textarea>
+            </div>
+          `;
+        }
 
         const card = document.createElement('div');
         card.className = 'space-y-4';
         card.innerHTML = `
+          ${taskHtml}
           <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-            <p class="text-xs text-slate-700 leading-relaxed font-medium">${bankW.essay.prompt}</p>
-            <textarea id="prac-essay-textarea" rows="4" placeholder="請在此自由練習英文寫作..."
-              class="w-full p-3.5 rounded-xl border border-slate-300 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">${wr.essay || ''}</textarea>
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <h4 class="text-sm font-bold text-slate-900">${bankW.essay.title}</h4>
+              <button type="button" id="btn-prac-fill-essay" class="text-xs text-indigo-600 hover:underline font-medium">填入參考範例</button>
+            </div>
+            ${bankW.essay.svgType ? `<div class="flex items-center gap-3">${getListeningSvg(bankW.essay.svgType, 'w-36 h-28')}<p class="text-[11px] text-slate-500">看圖寫作：請描述圖中的情景。</p></div>` : ''}
+            <p class="text-xs text-slate-700 leading-relaxed font-medium whitespace-pre-line">${bankW.essay.prompt}</p>
+            <textarea id="prac-essay-textarea" rows="${isElem ? 4 : 5}" placeholder="請在此自由練習英文寫作..."
+              class="w-full p-3.5 rounded-xl border border-slate-300 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">${qAttr(wr.essay)}</textarea>
             <div class="flex items-center justify-between flex-wrap gap-2">
               <span class="text-xs text-slate-500">建議字數：至少 ${bankW.essay.minWords} 字</span>
               <button type="button" id="btn-prac-grade-writing" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm">
@@ -3657,16 +3999,51 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
         `;
         area.appendChild(card);
 
+        card.querySelectorAll('.prac-writing-sent').forEach(inp => {
+          inp.addEventListener('input', () => {
+            const idx = Number(inp.getAttribute('data-sidx'));
+            if (idx === 0) wr.s1 = inp.value;
+            if (idx === 1) wr.s2 = inp.value;
+            if (idx === 2) wr.s3 = inp.value;
+          });
+        });
+        card.querySelectorAll('.btn-prac-fill-sent').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const idx = Number(btn.getAttribute('data-sidx'));
+            const sample = bankW.sentences[idx] && bankW.sentences[idx].sample;
+            if (!sample) return;
+            if (idx === 0) wr.s1 = sample;
+            if (idx === 1) wr.s2 = sample;
+            if (idx === 2) wr.s3 = sample;
+            renderPracticeWorkspace();
+          });
+        });
+        const transArea = document.getElementById('prac-trans-textarea');
+        if (transArea) {
+          transArea.addEventListener('input', () => {
+            wr.trans = transArea.value;
+          });
+        }
+        const fillTransBtn = document.getElementById('btn-prac-fill-trans');
+        if (fillTransBtn && bankW.translation) {
+          fillTransBtn.addEventListener('click', () => {
+            wr.trans = bankW.translation.sample;
+            renderPracticeWorkspace();
+          });
+        }
         const ta = document.getElementById('prac-essay-textarea');
         if (ta) {
           ta.addEventListener('input', () => {
             wr.essay = ta.value;
           });
         }
-        document.getElementById('btn-prac-fill-essay').addEventListener('click', () => {
-          wr.essay = bankW.essay.sample;
-          renderPracticeWorkspace();
-        });
+        const fillEssayBtn = document.getElementById('btn-prac-fill-essay');
+        if (fillEssayBtn && bankW.essay) {
+          fillEssayBtn.addEventListener('click', () => {
+            wr.essay = bankW.essay.sample;
+            renderPracticeWorkspace();
+          });
+        }
         document.getElementById('btn-prac-grade-writing').addEventListener('click', () => {
           const words = (wr.essay || '').trim() ? (wr.essay || '').trim().split(/\s+/).length : 0;
           if (words >= bankW.essay.minWords) {
@@ -3675,10 +4052,10 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
             wr.feedbackMsg = `🎉 不錯喔~ 這篇寫作字數達 ${words} 字，結構完整、句型流暢（預估可拿 ${wr.score100} 分，超過 85% 練習者）！加油喔，已經可以準備測驗考試的程度囉！`;
           } else if (words > 0) {
             wr.score100 = 68;
-            wr.feedbackMsg = `💡 嗯... 這題字數與細節應該要把握住喔~ 目前僅 ${words} 字（建議達 ${bankW.essay.minWords} 字以上），可參考上方「填入高分參考範文觀摩」擴充連接詞與具體例子！`;
+            wr.feedbackMsg = `💡 嗯... 這題字數與細節應該要把握住喔~ 目前僅 ${words} 字（建議達 ${bankW.essay.minWords} 字以上），可按各題的「填入參考範例」觀摩句型與連接詞！`;
           } else {
             wr.score100 = 0;
-            wr.feedbackMsg = `✨ 請先輸入幾個英文句子，或點擊右上角「填入高分參考範文觀摩」開始練習喔！`;
+            wr.feedbackMsg = `✨ 請先輸入幾個英文句子，或按各題的「填入參考範例」開始觀摩喔！`;
           }
           p.lastEncourageMsg = wr.feedbackMsg;
           renderPracticeWorkspace();
@@ -3691,8 +4068,12 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
     // =========================================================================
     // 7.8 GEMINI API & DYNAMIC PARAMETERIZED QUESTION GENERATOR (方案 3 動態命題引擎)
     // =========================================================================
-    function shuffleArrayWithAnswer(optionsPlain, correctIdx) {
-      const items = optionsPlain.map((text, idx) => ({ text, isCorrect: idx === correctIdx }));
+    function shuffleArrayWithAnswer(optionsPlain, correctIdx, parallel) {
+      const items = optionsPlain.map((text, idx) => ({
+        text: text,
+        isCorrect: idx === correctIdx,
+        extra: parallel ? parallel[idx] : null
+      }));
       for (let i = items.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         const tmp = items[i];
@@ -3700,9 +4081,9 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
         items[j] = tmp;
       }
       const prefixes = ['A. ', 'B. ', 'C. ', 'D. '];
-      const newOptions = items.map((it, idx) => prefixes[idx] + it.text.replace(/^[A-D]\.\s*/, ''));
+      const newOptions = items.map((it, idx) => prefixes[idx] + String(it.text).replace(/^[A-D]\.\s*/, ''));
       const newAnswer = items.findIndex(it => it.isCorrect);
-      return { options: newOptions, answer: newAnswer };
+      return { options: newOptions, answer: newAnswer, extras: parallel ? items.map(it => it.extra) : null };
     }
 
     function pickRandom(arr) {
@@ -3755,23 +4136,26 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
       return picked;
     }
 
-    function mc(k, prompt, opts, ok, why, rate, svg, audio, tags) {
+    function mc(k, prompt, opts, ok, why, rate, svg, audio, tags, extra) {
       const item = { k: k, prompt: prompt, opts: opts, ok: ok, why: why, rate: rate };
       if (svg) item.svg = svg;
       if (audio) item.audio = audio;
       if (tags) item.tags = tags;
+      if (extra) Object.assign(item, extra);
       return item;
     }
 
     function emitMcq(slotKey, pool, topic, id, part) {
       const item = pickFresh(poolFor(pool, topic), slotKey);
-      const shuf = shuffleArrayWithAnswer(item.opts, item.ok);
+      const shuf = shuffleArrayWithAnswer(item.opts, item.ok, item.optionSvgs);
       state.dynamicMetaMap[id] = { peerRate: item.rate, explanation: item.why };
       const q = { id: id, part: part, prompt: item.prompt, options: shuf.options, answer: shuf.answer, stemKey: item.k };
       if (item.svg) q.svgType = item.svg;
       if (item.passage) q.passage = item.passage;
+      if (item.chartHtml) q.chartHtml = item.chartHtml;
+      if (item.optionSvgs) q.optionSvgs = shuf.extras;
       if (item.audio) q.audioText = item.audio;
-      else if (item.svg) q.audioText = 'Look at the picture. Which statement is true? ' + shuf.options.join(' ');
+      else if (item.svg) q.audioText = 'Look at the picture. ' + shuf.options.join(' ');
       return q;
     }
 
@@ -3853,69 +4237,69 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
             mc('el8c', dlg, ['The game was moved indoors because of rain.', 'The game started one hour early.', 'The players forgot the ball.'], 0, '下雨所以比賽改到室內。', 79, null, 'Woman: Is the basketball game still in the park? Man: No, it is raining, so we moved it to the school gym. Question: What happened to the game?')
           ], topic, 'EL8_G' + genRound, '第三部分：簡短對話'),
           emitMcq('初級-L9', [
-            mc('el9a', talk, ['Before six ten.', 'After seven thirty.', 'At noon.'], 0, '廣播要求六點十分前完成寄物。', 74, null, 'Attention, runners. Please leave your bags at the help desk before six ten. The race starts at six thirty.'),
-            mc('el9b', talk, ['Go to the front desk now.', 'Come back next month.', 'Use the computers upstairs.'], 0, '圖書館即將關門，借書要立刻到櫃台。', 82, null, 'The library will close in ten minutes. If you want to borrow books tonight, please bring them to the front desk now.'),
-            mc('el9c', talk, ['The museum is free on Wednesday mornings.', 'The museum is closed all year.', 'Tickets are only sold on Sunday night.'], 0, '週三上午博物館免費入場。', 80, null, 'Welcome to the city museum. Admission is free on Wednesday mornings from nine to twelve. Other days, tickets cost one hundred dollars.')
+            mc('el9a', talk, ['Before six ten.', 'After seven thirty.', 'At noon.'], 0, '廣播要求六點十分前完成寄物，對應時鐘 6:10。', 74, null, 'Attention, runners. Please leave your bags at the help desk before six ten. The race starts at six thirty. Question: Which clock shows the latest time to leave the bags?', ['run', 'all'], { optionSvgs: ['t610', 't730', 'noon'] }),
+            mc('el9b', talk, ['Go to the front desk now.', 'Come back next month.', 'Use the computers upstairs.'], 0, '圖書館即將關門，借書要立刻到櫃台。', 82, null, 'The library will close in ten minutes. If you want to borrow books tonight, please bring them to the front desk now. Question: Which picture matches what visitors should do?', ['all'], { optionSvgs: ['desk', 'month', 'computer'] }),
+            mc('el9c', talk, ['The museum is free on Wednesday mornings.', 'The museum is closed all year.', 'Tickets are only sold on Sunday night.'], 0, '週三上午博物館免費入場，不是整年關閉或只在週日晚上賣票。', 80, null, 'Welcome to the city museum. Admission is free on Wednesday mornings from nine to twelve. Other days, tickets cost one hundred dollars. Question: Which picture matches the announcement?', ['city', 'all'], { optionSvgs: ['card', 'closed', 'night'] })
           ], topic, 'EL9_G' + genRound, '第四部分：短文聽解'),
           emitMcq('初級-L10', [
-            mc('el10a', talk, ['Buy two loaves of bread.', 'Arrive after eight.', 'Order a chocolate cake only.'], 0, '買兩條麵包才送咖啡。', 81, null, 'Sunny Bakery special: buy two loaves of bread before eight and get a free cup of hot coffee.'),
-            mc('el10b', talk, ['On Monday.', 'On Saturday.', 'Every morning.'], 0, '語音說週一公休。', 84, null, 'Thank you for calling Green Leaf Cafe. We are open from Tuesday to Sunday, and we are closed on Monday.'),
-            mc('el10c', talk, ['Bring a student card.', 'Come with three friends.', 'Pay in cash only.'], 0, '學生證可享半價。', 78, null, 'The sports center pool is half price for students. Please bring your student card to the ticket window.')
+            mc('el10a', talk, ['Buy two loaves of bread.', 'Arrive after eight.', 'Order a chocolate cake only.'], 0, '買兩條麵包才送咖啡。', 81, null, 'Sunny Bakery special: buy two loaves of bread before eight and get a free cup of hot coffee. Question: Which picture shows how to get a free coffee?', ['coffee', 'all'], { optionSvgs: ['bread', 'night', 'cake'] }),
+            mc('el10b', talk, ['On Monday.', 'On Saturday.', 'Every morning.'], 0, '語音說週一公休。', 84, null, 'Thank you for calling Green Leaf Cafe. We are open from Tuesday to Sunday, and we are closed on Monday. Question: Which picture shows the closed day?', ['coffee', 'city'], { optionSvgs: ['monday', 'saturday', 'everyday'] }),
+            mc('el10c', talk, ['Bring a student card.', 'Come with three friends.', 'Pay in cash only.'], 0, '學生證可享半價。', 78, null, 'The sports center pool is half price for students. Please bring your student card to the ticket window. Question: Which picture shows what students should bring?', ['run', 'all'], { optionSvgs: ['card', 'friends', 'cash'] })
           ], topic, 'EL10_G' + genRound, '第四部分：短文聽解')
         ];
 
         const readingSingles = [
           emitMcq('初級-R1', [
-            mc('er1a', 'Make sure you stretch ______ you start running fast.', ['before', 'unless', 'although', 'during'], 0, 'before 接子句，表示快跑之前先伸展。', 88),
-            mc('er1b', 'We missed the bus ______ we left home too late.', ['because', 'so that', 'even though', 'instead of'], 0, 'because 說明錯過公車的原因。', 84),
-            mc('er1c', 'Please call me ______ you arrive at the station.', ['as soon as', 'because of', 'in spite of', 'according to'], 0, 'as soon as 表示一到車站就打電話。', 86)
-          ], topic, 'ER1_G' + genRound, '第一部分：詞彙與結構'),
+            mc('er1a', 'The new bakery is very ______; it is only a three-minute walk from the metro.', ['convenient', 'nervous', 'bitter', 'ancient'], 0, '走路三分鐘就到，用 convenient（方便的）。', 88),
+            mc('er1b', 'Please be ______ in the reading room. People are studying.', ['quiet', 'expensive', 'salty', 'wooden'], 0, '閱讀室要安靜，用 quiet。', 86),
+            mc('er1c', 'This lemon juice tastes too ______. Please add a little water.', ['sour', 'polite', 'crowded', 'heavy'], 0, '檸檬汁太酸，用 sour。', 84)
+          ], topic, 'ER1_G' + genRound, '第一部分：詞彙'),
           emitMcq('初級-R2', [
-            mc('er2a', 'My uncle enjoys ______ black coffee while he reads the news.', ['drinking', 'drink', 'drank', 'to drinking'], 0, 'enjoy 後面接動名詞 drinking。', 85),
-            mc('er2b', 'Thank you for ______ me find the right platform.', ['helping', 'help', 'helped', 'to helping'], 0, '介系詞 for 後面接動名詞 helping。', 83),
-            mc('er2c', 'She is good at ______ stories in English.', ['telling', 'tell', 'told', 'to tell'], 0, 'be good at 後面接動名詞 telling。', 81),
-            mc('er2d', 'We look forward to ______ you at the school fair.', ['seeing', 'see', 'saw', 'to see'], 0, 'look forward to 的 to 是介系詞，後面接 seeing。', 74)
-          ], topic, 'ER2_G' + genRound, '第一部分：詞彙與結構'),
+            mc('er2a', 'The night market was so ______ that we could not walk quickly.', ['crowded', 'delicious', 'private', 'fresh'], 0, '人多到走不快，用 crowded。', 85),
+            mc('er2b', 'I felt ______ after a short jog and a glass of water.', ['energetic', 'expensive', 'narrow', 'ancient'], 0, '跑完又喝水後有精神，用 energetic。', 83),
+            mc('er2c', 'The morning air in the park felt ______, so we stayed for another walk.', ['fresh', 'expensive', 'private', 'wooden'], 0, '清晨空氣清新，用 fresh。', 82),
+            mc('er2d', 'Could you ______ me the way to the post office?', ['tell', 'borrow', 'close', 'taste'], 0, '問路用 tell someone the way。', 80)
+          ], topic, 'ER2_G' + genRound, '第一部分：詞彙'),
           emitMcq('初級-R3', [
-            mc('er3a', 'The new bakery is very ______; it is only a three-minute walk from the metro.', ['convenient', 'nervous', 'bitter', 'ancient'], 0, '離捷運很近，所以是 convenient。', 87),
-            mc('er3b', 'This lemon juice tastes too ______. Please add a little water.', ['sour', 'polite', 'crowded', 'heavy'], 0, '檸檬汁太酸，形容詞用 sour。', 80),
-            mc('er3c', 'The morning air in the park felt ______, so we stayed for another walk.', ['fresh', 'expensive', 'private', 'wooden'], 0, '清晨空氣清新，用 fresh。', 82)
-          ], topic, 'ER3_G' + genRound, '第一部分：詞彙與結構'),
+            mc('er3a', 'We need a ______ of whole wheat bread for breakfast.', ['loaf', 'ticket', 'platform', 'umbrella'], 0, '一條麵包用 a loaf of bread。', 84),
+            mc('er3b', 'The library is a ______ place to read after school.', ['quiet', 'salty', 'bitter', 'sudden'], 0, '適合讀書的地方是 quiet。', 86),
+            mc('er3c', 'Please bring a ______ of water on the school trip.', ['bottle', 'crowd', 'price', 'station'], 0, '一瓶水用 a bottle of water。', 88)
+          ], topic, 'ER3_G' + genRound, '第一部分：詞彙'),
           emitMcq('初級-R4', [
-            mc('er4a', 'It ______ since yesterday, so the picnic was moved indoors.', ['has rained', 'rain', 'raining', 'to rain'], 0, 'since yesterday 搭配現在完成式 has rained。', 72),
-            mc('er4b', 'Neither the teacher nor the students ______ ready for the fire drill.', ['were', 'was', 'is', 'be'], 0, 'neither...nor 動詞跟靠近的 students 一致，用 were。', 70),
-            mc('er4c', 'If it ______ tomorrow, we will practice in the gym.', ['rains', 'rained', 'raining', 'rain'], 0, 'If 假設明天可能下雨，用現在式 rains。', 76)
-          ], topic, 'ER4_G' + genRound, '第一部分：詞彙與結構')
+            mc('er4a', 'The bus stop is ______ the school, so students can walk there.', ['near', 'sour', 'asleep', 'empty'], 0, '可以走路到達，用 near。', 87),
+            mc('er4b', 'This soup is too ______. I will add some water.', ['salty', 'polite', 'crowded', 'careful'], 0, '湯太鹹，用 salty。', 81),
+            mc('er4c', 'The clerk was ______ and helped us find the right train.', ['helpful', 'bitter', 'narrow', 'wooden'], 0, '店員幫忙找車，用 helpful。', 83)
+          ], topic, 'ER4_G' + genRound, '第一部分：詞彙')
         ];
 
         const cloze = emitGroup('初級-cloze', [
           {
             k: 'ecloze-run',
             tags: ['run', 'all'],
-            passage: 'Many students want to run farther without getting hurt. They spend ten minutes (5)______ before they leave home. A slow jog three times a week can (6)______ the heart stronger. After the run, drinking water helps the body stay (7)______.',
+            passage: 'Many students want to run farther without getting hurt. They spend ten minutes (5)______ before they leave home. (6)______ After the run, drinking water helps the body stay (7)______.',
             items: [
               { prompt: '請選出空格 (5) 最合適的字：', opts: ['stretching', 'stretch', 'stretched', 'to stretch'], ok: 0, why: 'spend time 後面接動名詞 stretching。', rate: 78 },
-              { prompt: '請選出空格 (6) 最合適的字：', opts: ['make', 'making', 'made', 'to making'], ok: 0, why: '助動詞 can 後面接原形 make。', rate: 80 },
+              { prompt: '請選出空格 (6) 最合適的句子：', opts: ['A slow jog three times a week can make the heart stronger.', 'The museum is closed all year.', 'Please buy two train tickets.', 'My uncle drives a bus.'], ok: 0, why: '空格要接「慢跑能讓心臟更強」這句，其餘與這段無關。', rate: 80 },
               { prompt: '請選出空格 (7) 最合適的字：', opts: ['healthy', 'health', 'healthily', 'heal'], ok: 0, why: 'stay 後面接形容詞 healthy。', rate: 77 }
             ]
           },
           {
             k: 'ecloze-coffee',
             tags: ['coffee'],
-            passage: 'Brewing coffee at home is simple. First, grind the beans just before (5)______. Next, pour hot water slowly so the grounds are evenly (6)______. In a few minutes you can enjoy a cup that (7)______ the kitchen smell wonderful.',
+            passage: 'Brewing coffee at home is simple. First, grind the beans just before (5)______. (6)______ In a few minutes you can enjoy a cup that (7)______ the kitchen smell wonderful.',
             items: [
               { prompt: '請選出空格 (5) 最合適的字：', opts: ['brewing', 'brew', 'brewed', 'brews'], ok: 0, why: '介系詞 before 後面接動名詞 brewing。', rate: 76 },
-              { prompt: '請選出空格 (6) 最合適的字：', opts: ['soaked', 'soaking', 'soak', 'to soak'], ok: 0, why: 'are evenly soaked 是被動，咖啡粉被水浸濕。', rate: 74 },
+              { prompt: '請選出空格 (6) 最合適的句子：', opts: ['Next, pour hot water slowly so the grounds get evenly wet.', 'The runners must arrive before six ten.', 'Please close the library on Monday.', 'My sister is buying a train ticket.'], ok: 0, why: '空格要接「接著慢慢注水」這句。', rate: 74 },
               { prompt: '請選出空格 (7) 最合適的字：', opts: ['makes', 'make', 'making', 'to make'], ok: 0, why: '先行詞 a cup 是單數，動詞用 makes。', rate: 79 }
             ]
           },
           {
             k: 'ecloze-city',
             tags: ['city', 'all'],
-            passage: 'Our town opened a new reading corner at the metro station. People can sit there (5)______ they wait for the train. The corner (6)______ magazines and children books. It is a quiet place, so please keep your voice (7)______.',
+            passage: 'Our town opened a new reading corner at the metro station. People can sit there (5)______ they wait for the train. (6)______ It is a quiet place, so please keep your voice (7)______.',
             items: [
               { prompt: '請選出空格 (5) 最合適的字：', opts: ['while', 'during', 'because of', 'instead'], ok: 0, why: 'while 後面可以接子句 they wait。during 後面要接名詞。', rate: 75 },
-              { prompt: '請選出空格 (6) 最合適的字：', opts: ['offers', 'offer', 'offering', 'to offer'], ok: 0, why: '主詞 The corner 是單數，現在式用 offers。', rate: 81 },
+              { prompt: '請選出空格 (6) 最合適的句子：', opts: ['The corner offers magazines and children\'s books.', 'The pool is closed for a swimming race.', 'Buy two loaves of bread before eight.', 'The bus leaves from platform three.'], ok: 0, why: '空格要說明閱讀角提供雜誌與童書。', rate: 81 },
               { prompt: '請選出空格 (7) 最合適的字：', opts: ['low', 'lowly', 'lowness', 'lowered'], ok: 0, why: 'keep + 受詞 + 形容詞，voice low。', rate: 73 }
             ]
           }
@@ -3925,31 +4309,31 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
           {
             k: 'eread-pool',
             tags: ['run', 'city'],
-            passage: '【Riverside Sports Park Notice】\nThe outdoor pool will close for cleaning from May 2 to May 6. It will open again on May 7 at 6:00 a.m. The running track on the third floor stays open from 6:00 a.m. to 10:00 p.m. Monthly members will get five extra days.',
+            passage: '【公告 A｜游泳池】\nThe outdoor pool will close for cleaning from May 2 to May 6. It will open again on May 7 at 6:00 a.m.\n\n【公告 B｜會員與跑道】\nMonthly members will get five extra days. The running track on the third floor stays open from 6:00 a.m. to 10:00 p.m.',
             items: [
-              { prompt: 'Why will the pool close?', opts: ['For cleaning.', 'For a swimming race.', 'Because the building is moving.', 'Because there is no water.'], ok: 0, why: '公告寫 close for cleaning。', rate: 88 },
-              { prompt: 'Which place stays open?', opts: ['The running track on the third floor.', 'The outdoor pool.', 'The ticket office.', 'The parking lot.'], ok: 0, why: '三樓跑道維持開放。', rate: 86 },
-              { prompt: 'What will monthly members get?', opts: ['Five extra days.', 'A free towel.', 'A full refund.', 'Free running shoes.'], ok: 0, why: '月票會員得到五天展延。', rate: 84 }
+              { prompt: 'Why will the pool close?', opts: ['For cleaning.', 'For a swimming race.', 'Because the building is moving.', 'Because there is no water.'], ok: 0, why: '公告 A 寫 close for cleaning。', rate: 88 },
+              { prompt: 'Which place stays open?', opts: ['The running track on the third floor.', 'The outdoor pool.', 'The ticket office.', 'The parking lot.'], ok: 0, why: '公告 B 寫三樓跑道維持開放。', rate: 86 },
+              { prompt: 'What should a monthly member expect from May 2 to May 6?', opts: ['The pool is closed for cleaning, and the membership gets five extra days.', 'The pool stays open and the track closes.', 'Members must pay again on May 2.', 'The park is moving to a new city.'], ok: 0, why: '要同時看公告 A 的閉館與公告 B 的展延。', rate: 84 }
             ]
           },
           {
             k: 'eread-cafe',
             tags: ['coffee', 'city'],
-            passage: '【Weekend Market Cafe】\nOur cafe cart will be at the old train station this Saturday from 10:00 a.m. to 4:00 p.m. A small hot coffee is 80 dollars, and a piece of banana cake is 50 dollars. If you bring your own cup, you get 10 dollars off.',
+            passage: '【告示 A｜時間地點】\nOur cafe cart will be at the old train station this Saturday from 10:00 a.m. to 4:00 p.m.\n\n【告示 B｜價格】\nA small hot coffee is 80 dollars, and a piece of banana cake is 50 dollars. If you bring your own cup, you get 10 dollars off.',
             items: [
-              { prompt: 'Where will the cafe cart be on Saturday?', opts: ['At the old train station.', 'At the city hospital.', 'Inside the school library.', 'On the third floor of a mall.'], ok: 0, why: '地點是舊火車站。', rate: 89 },
-              { prompt: 'How much is a piece of banana cake?', opts: ['50 dollars.', '80 dollars.', '10 dollars.', '4 dollars.'], ok: 0, why: '蛋糕是 50 元，咖啡才是 80 元。', rate: 85 },
-              { prompt: 'How can a customer pay 10 dollars less?', opts: ['By bringing their own cup.', 'By coming on Sunday.', 'By buying three cakes.', 'By showing a student card.'], ok: 0, why: '自備杯子折 10 元。', rate: 83 }
+              { prompt: 'Where will the cafe cart be on Saturday?', opts: ['At the old train station.', 'At the city hospital.', 'Inside the school library.', 'On the third floor of a mall.'], ok: 0, why: '告示 A 的地點是舊火車站。', rate: 89 },
+              { prompt: 'How much is a piece of banana cake?', opts: ['50 dollars.', '80 dollars.', '10 dollars.', '4 dollars.'], ok: 0, why: '告示 B：蛋糕是 50 元，咖啡才是 80 元。', rate: 85 },
+              { prompt: 'What can a customer do at the old train station on Saturday?', opts: ['Bring their own cup and pay 10 dollars less.', 'Buy the cake for 80 dollars after 4 p.m.', 'Visit the cart on Sunday at the hospital.', 'Get free cake by showing a student card.'], ok: 0, why: '地點在告示 A，自備杯子折 10 元在告示 B。', rate: 83 }
             ]
           },
           {
             k: 'eread-class',
             tags: ['all'],
-            passage: '【Class Trip Reminder】\nThe grade 8 trip to the science museum is next Thursday. Students must arrive at school by 7:40 a.m. The bus leaves at 8:00 a.m. Please bring a lunch box, a bottle of water, and your student card. Phones must stay in your bag during the tour.',
+            passage: '【通知 A｜集合】\nThe grade 8 trip to the science museum is next Thursday. Students must arrive at school by 7:40 a.m. The bus leaves at 8:00 a.m.\n\n【通知 B｜攜帶物品】\nPlease bring a lunch box, a bottle of water, and your student card. Phones must stay in your bag during the tour.',
             items: [
-              { prompt: 'When does the bus leave?', opts: ['At 8:00 a.m.', 'At 7:40 a.m.', 'On Friday evening.', 'At noon.'], ok: 0, why: '7:40 是到校時間，巴士 8:00 離開。', rate: 87 },
-              { prompt: 'What should students bring?', opts: ['A lunch box, water, and a student card.', 'A sleeping bag.', 'A basketball.', 'A camera only.'], ok: 0, why: '公告列出便當、水和學生證。', rate: 84 },
-              { prompt: 'What is the rule about phones?', opts: ['Keep them in the bag during the tour.', 'Use them to take photos all day.', 'Give them to the bus driver.', 'Leave them at home for a week.'], ok: 0, why: '參觀時手機要放在袋子裡。', rate: 82 }
+              { prompt: 'When does the bus leave?', opts: ['At 8:00 a.m.', 'At 7:40 a.m.', 'On Friday evening.', 'At noon.'], ok: 0, why: '通知 A：7:40 是到校時間，巴士 8:00 離開。', rate: 87 },
+              { prompt: 'What should students bring?', opts: ['A lunch box, water, and a student card.', 'A sleeping bag.', 'A basketball.', 'A camera only.'], ok: 0, why: '通知 B 列出便當、水和學生證。', rate: 84 },
+              { prompt: 'What is true about the Thursday trip?', opts: ['Students catch the 8:00 bus and keep phones in their bags.', 'The bus leaves at 7:40 and phones may be used all day.', 'Students stay at school and leave their lunch at home.', 'The museum trip is on Friday evening.'], ok: 0, why: '發車時間在通知 A，手機規定在通知 B。', rate: 82 }
             ]
           }
         ], topic, 'ER', '第三部分：閱讀理解', 8, genRound);
@@ -3960,7 +4344,7 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
             items: [
               { part: '第一部分：純音聽複誦', audioOnly: true, timeLimitSec: 10, audioText: 'Could you tell me where the nearest bakery is?', expectedKeywords: ['could', 'tell', 'where', 'nearest', 'bakery'], instruction: '請聽兩次後，在 10 秒內複誦這句英文。' },
               { part: '第一部分：純音聽複誦', audioOnly: true, timeLimitSec: 10, audioText: 'Remember to bring water before you go jogging.', expectedKeywords: ['remember', 'bring', 'water', 'before', 'jogging'], instruction: '請聽兩次後，在 10 秒內複誦這句英文。' },
-              { part: '第二部分：朗讀短文', audioOnly: false, timeLimitSec: 20, audioText: 'On Sunday morning, my family walks to the park. We buy fresh bread and sit under a tree for breakfast.', expectedKeywords: ['sunday', 'family', 'park', 'bread', 'breakfast'], instruction: '請在 20 秒內朗讀這段短文。' },
+              { part: '第二部分：朗讀短文', audioOnly: false, timeLimitSec: 20, audioText: 'On Sunday morning, my family walks to the park. We buy fresh bread and sit under a tree for breakfast.', expectedKeywords: ['sunday', 'family', 'park', 'bread', 'breakfast'], instruction: '【試卷印有短文】請直接朗讀下方文字，正試不播放示範音。' },
               { part: '第三部分：回答問題', audioOnly: true, timeLimitSec: 15, audioText: 'What do you usually eat for breakfast?', expectedKeywords: ['breakfast', 'eat', 'bread', 'egg', 'milk', 'rice'], instruction: '請聽問題兩次，再用英文回答。' },
               { part: '第三部分：回答問題', audioOnly: true, timeLimitSec: 15, audioText: 'How do you go to school or work?', expectedKeywords: ['bus', 'metro', 'walk', 'bike', 'car', 'train'], instruction: '請聽問題兩次，再用英文回答。' }
             ]
@@ -3970,7 +4354,7 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
             items: [
               { part: '第一部分：純音聽複誦', audioOnly: true, timeLimitSec: 10, audioText: 'The reading room on the second floor is very quiet.', expectedKeywords: ['reading', 'room', 'second', 'floor', 'quiet'], instruction: '請聽兩次後，在 10 秒內複誦這句英文。' },
               { part: '第一部分：純音聽複誦', audioOnly: true, timeLimitSec: 10, audioText: 'Please check the train time before you leave home.', expectedKeywords: ['please', 'check', 'train', 'time', 'before', 'leave'], instruction: '請聽兩次後，在 10 秒內複誦這句英文。' },
-              { part: '第二部分：朗讀短文', audioOnly: false, timeLimitSec: 20, audioText: 'After school, Amy and her brother practice English for twenty minutes. Then they help their mother set the table.', expectedKeywords: ['school', 'practice', 'english', 'twenty', 'table'], instruction: '請在 20 秒內朗讀這段短文。' },
+              { part: '第二部分：朗讀短文', audioOnly: false, timeLimitSec: 20, audioText: 'After school, Amy and her brother practice English for twenty minutes. Then they help their mother set the table.', expectedKeywords: ['school', 'practice', 'english', 'twenty', 'table'], instruction: '【試卷印有短文】請直接朗讀下方文字，正試不播放示範音。' },
               { part: '第三部分：回答問題', audioOnly: true, timeLimitSec: 15, audioText: 'What sport do you like, and why?', expectedKeywords: ['like', 'because', 'run', 'ball', 'swim', 'fun'], instruction: '請聽問題兩次，再用英文回答。' },
               { part: '第三部分：回答問題', audioOnly: true, timeLimitSec: 15, audioText: 'Where do you like to go on weekends?', expectedKeywords: ['weekend', 'park', 'home', 'mall', 'beach', 'library'], instruction: '請聽問題兩次，再用英文回答。' }
             ]
@@ -3980,7 +4364,7 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
             items: [
               { part: '第一部分：純音聽複誦', audioOnly: true, timeLimitSec: 10, audioText: 'Do not forget to turn off the lights when you leave.', expectedKeywords: ['forget', 'turn', 'off', 'lights', 'leave'], instruction: '請聽兩次後，在 10 秒內複誦這句英文。' },
               { part: '第一部分：純音聽複誦', audioOnly: true, timeLimitSec: 10, audioText: 'The night market is crowded, but the food is delicious.', expectedKeywords: ['night', 'market', 'crowded', 'food', 'delicious'], instruction: '請聽兩次後，在 10 秒內複誦這句英文。' },
-              { part: '第二部分：朗讀短文', audioOnly: false, timeLimitSec: 20, audioText: 'Last Saturday I helped at a school book sale. We sold old storybooks and used the money to buy new ones.', expectedKeywords: ['saturday', 'book', 'sale', 'sold', 'money'], instruction: '請在 20 秒內朗讀這段短文。' },
+              { part: '第二部分：朗讀短文', audioOnly: false, timeLimitSec: 20, audioText: 'Last Saturday I helped at a school book sale. We sold old storybooks and used the money to buy new ones.', expectedKeywords: ['saturday', 'book', 'sale', 'sold', 'money'], instruction: '【試卷印有短文】請直接朗讀下方文字，正試不播放示範音。' },
               { part: '第三部分：回答問題', audioOnly: true, timeLimitSec: 15, audioText: 'Who do you usually talk to when you have a problem?', expectedKeywords: ['friend', 'mother', 'father', 'teacher', 'talk', 'help'], instruction: '請聽問題兩次，再用英文回答。' },
               { part: '第三部分：回答問題', audioOnly: true, timeLimitSec: 15, audioText: 'What time do you usually go to bed?', expectedKeywords: ['bed', 'night', 'ten', 'eleven', 'usually', 'sleep'], instruction: '請聽問題兩次，再用英文回答。' }
             ]
@@ -3995,7 +4379,7 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
               { type: '句子合併', prompt: 'The girl is my classmate. / The girl is wearing a red hat. 請用 who 合併。', sample: 'The girl who is wearing a red hat is my classmate.', keywords: ['girl', 'who', 'wearing', 'red', 'hat', 'classmate'] },
               { type: '句子重組', prompt: '請重組：takes / me / twenty minutes / It / to / walk / to school / .', sample: 'It takes me twenty minutes to walk to school.', keywords: ['it', 'takes', 'me', 'twenty', 'minutes', 'walk'] }
             ],
-            essay: { title: '段落寫作：校園早晨', prompt: '用約 50 個英文字描述你今天早上到學校或上班前做了什麼，以及你的心情。', sample: 'This morning I got up at six thirty and walked to the bus stop. The air was cool, and I felt calm. I bought a bottle of soy milk before class. It was a good start to the day.', minWords: 35 }
+            essay: { title: '第二部分：看圖段落寫作', svgType: 'morning', prompt: '請看圖。用約 50 個英文字描述圖中人物的早晨：有人在散步或慢跑，桌上還有一杯飲料。並寫出這幅情景給你的感受。', sample: 'This morning a person is jogging near the park while the sun is up. A cup of coffee sits on the table. I feel calm and ready for the day.', minWords: 35 }
           },
           {
             k: 'ew-b',
@@ -4004,7 +4388,7 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
               { type: '句子合併', prompt: 'The dog is very friendly. / The dog lives next door. 請用 which 合併。', sample: 'The dog which lives next door is very friendly.', keywords: ['dog', 'which', 'lives', 'next', 'door', 'friendly'] },
               { type: '句子重組', prompt: '請重組：enough / is / old / ride / to / a bike / Ken / .', sample: 'Ken is old enough to ride a bike.', keywords: ['ken', 'old', 'enough', 'to', 'ride'] }
             ],
-            essay: { title: '段落寫作：週末運動', prompt: '用約 50 個英文字寫一次你和朋友或家人在公園運動的經驗。', sample: 'Last Sunday my brother and I went to the park near our home. We jogged slowly for twenty minutes and then drank water under a tree. I felt tired but happy. I want to go again next weekend.', minWords: 35 }
+            essay: { title: '第二部分：看圖段落寫作', svgType: 'morning', prompt: '請看圖。用約 50 個英文字寫圖中的人在做什麼，以及你會不會想過同樣的早晨。', sample: 'In the picture, someone is running in the morning sun, and a warm drink is on the table. I would like a morning like this because it feels fresh and quiet.', minWords: 35 }
           },
           {
             k: 'ew-c',
@@ -4013,7 +4397,7 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
               { type: '句子合併', prompt: 'Ms. Lin is a nurse. / Ms. Lin works at the city hospital. 請用 who 合併。', sample: 'Ms. Lin, who works at the city hospital, is a nurse.', keywords: ['who', 'works', 'hospital', 'nurse'] },
               { type: '句子重組', prompt: '請重組：too / tired / was / I / run / to / .', sample: 'I was too tired to run.', keywords: ['too', 'tired', 'to', 'run'] }
             ],
-            essay: { title: '段落寫作：一次幫忙', prompt: '用約 50 個英文字寫你最近幫家人或同學做的一件事。', sample: 'Yesterday I helped my classmate carry books to the library. The bag was heavy, but we talked and laughed on the way. She thanked me and shared her cookies. I was glad I could help.', minWords: 35 }
+            essay: { title: '第二部分：看圖段落寫作', svgType: 'morning', prompt: '請看圖。用約 50 個英文字描述圖裡的早晨活動，並說明這樣的開始為什麼讓人舒服。', sample: 'The picture shows a sunny morning, a short run, and a cup on the table. Starting the day this way feels comfortable and gives me energy.', minWords: 35 }
           }
         ], topic, 'EW', genRound);
 
@@ -4058,9 +4442,9 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
           mc('il7c', dlg, ['Start the long run earlier, before the heat builds.', 'Cancel the training plan.', 'Run only at noon.', 'Skip water stations.'], 0, '高溫天把長跑改到更早，避免中午熱壓力。', 81, null, 'Woman: My noon long run felt much harder this week. Man: Move it to sunrise. The same pace will cost less in the heat. Question: What does the man recommend?')
         ], topic, 'IL7_G' + genRound, '第三部分：簡短對話'),
         emitMcq('中級-L8', [
-          mc('il8a', dlg, ['Queue the jobs and resume them after the restart.', 'Delete the jobs permanently.', 'Ask an outside company to run them on Sunday.', 'Print every job on paper.'], 0, '維護空檔的批次工作會排隊，重開後繼續。', 83, null, 'Man: What happens to the two a.m. jobs during the Saturday patch? Woman: They wait in a queue and continue after the server restarts. Question: What happens to those jobs?'),
-          mc('il8b', dlg, ['Write the decision down so the next shift can follow it.', 'Ignore the handover note.', 'Shut the line for a week.', 'Change the product price.'], 0, '男士要求把決定寫進交接，下一班才跟得上。', 79, null, 'Woman: The night shift may not know why we changed the order. Man: Put the reason in the handover note before you leave. Question: What must be written down?'),
-          mc('il8c', dlg, ['She will compare three fund fees before she moves any money.', 'She will withdraw everything tomorrow.', 'She will stop saving.', 'She will buy a house this weekend.'], 0, '她會先比較三檔基金費用再搬家資產。', 80, null, 'Man: Are you moving your savings this week? Woman: Not yet. I will compare three fund fees first. Question: What will the woman do first?')
+          mc('il8a', dlg, ['Queue the jobs and resume them after the restart.', 'Delete the jobs permanently.', 'Ask an outside company to run them on Sunday.', 'Print every job on paper.'], 0, '答案在維護表：2:00–4:00 排隊，重開後繼續。對話沒有把表上的規則念完。', 83, null, 'Man: What happens to the two a.m. jobs during the Saturday patch? Woman: Use the maintenance table. That note is the rule. Question: According to the table, what happens to those jobs?', ['tech', 'all'], { chartHtml: paperTable('Saturday maintenance', [['2:00–4:00 a.m.', 'Jobs wait in a queue'], ['After restart', 'Jobs continue']]) }),
+          mc('il8b', dlg, ['Write the decision down so the next shift can follow it.', 'Ignore the handover note.', 'Shut the line for a week.', 'Change the product price.'], 0, '交接表要求寫下改單原因，給下一班照做。', 79, null, 'Woman: The night shift may not know why we changed the order. Man: Look at the handover table before you leave. Question: What does the table require?', ['tech'], { chartHtml: paperTable('Handover table', [['Write down', 'The reason for the order change'], ['Reader', 'The next shift']]) }),
+          mc('il8c', dlg, ['She will compare three fund fees before she moves any money.', 'She will withdraw everything tomorrow.', 'She will stop saving.', 'She will buy a house this weekend.'], 0, '步驟表的第一步是比較三檔費用，第二步才搬錢。', 80, null, 'Man: Are you moving your savings this week? Woman: Follow the steps on the card. Question: What will the woman do first?', ['all'], { chartHtml: paperTable('Savings steps', [['Step 1', 'Compare three fund fees'], ['Step 2', 'Move the money']]) })
         ], topic, 'IL8_G' + genRound, '第三部分：簡短對話'),
         emitMcq('中級-L9', [
           mc('il9a', talk, ['As cash for needs in the next three years.', 'As a bet on one new coin.', 'As money to buy factory machines.', 'As a thirty-year mortgage payment.'], 0, '三年資金桶是短期現金需求，不是投機。', 78, null, 'A careful savings plan keeps three buckets: cash for the next three years, a medium fund for ten years, and a broad stock fund for retirement.'),
@@ -4068,9 +4452,9 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
           mc('il9c', talk, ['Light roasts need hotter water to show fruit flavors.', 'Hotter water removes all caffeine.', 'Hotter water is only for cleaning the kettle.', 'Dark roasts should always use boiling water for ten minutes.'], 0, '淺焙要用較熱水溫才帶得出果香。', 76, null, 'For light-roasted coffee, water around ninety-three degrees helps fruit flavors. Dark roasts taste rounder closer to eighty-eight degrees.')
         ], topic, 'IL9_G' + genRound, '第四部分：簡短談話'),
         emitMcq('中級-L10', [
-          mc('il10a', talk, ['It cut setup changes by eighteen percent.', 'It removed every furnace.', 'It doubled delivery delays.', 'It ended quality checks.'], 0, '模型把換線次數減少 18%。', 81, null, 'The new scheduling model tests thousands of job orders in seconds and has cut setup changes by eighteen percent.'),
-          mc('il10b', talk, ['A unique session number is created when the test starts.', 'The number is created three days later.', 'The number is created only after a failing grade.', 'The number replaces the user name on the score sheet.'], 0, 'Session 編號在開考當下建立。', 85, null, 'The system creates a unique session number the moment a learner starts. Scores are saved in small steps, and a final copy is sent if the page closes.'),
-          mc('il10c', talk, ['Bring the race packet on Friday and your own cup on Sunday.', 'Register on the morning of the race.', 'Pay an extra fee at the finish.', 'Skip the water stations.'], 0, '週五領物資，週日自備杯子才能換折價券。', 80, null, 'Packet pickup is Friday at the culture center. On Sunday, runners who bring a reusable cup get a one-hundred-dollar sports voucher.')
+          mc('il10a', talk, ['It cut setup changes by eighteen percent.', 'It removed every furnace.', 'It doubled delivery delays.', 'It ended quality checks.'], 0, '結果表寫換線次數減少 18%。談話要考生對照表格。', 81, null, 'The scheduling office posted this quarter result. Please answer from the results table. Question: What did the new model change?', ['tech'], { chartHtml: paperTable('Quarter results', [['Setup changes', 'Down 18%'], ['Furnaces', 'Still in use'], ['Quality checks', 'Unchanged']]) }),
+          mc('il10b', talk, ['A unique session number is created when the test starts.', 'The number is created three days later.', 'The number is created only after a failing grade.', 'The number replaces the user name on the score sheet.'], 0, '流程表的第一步是開考當下建立編號。', 85, null, 'Listen and use the process table. Question: When is the session number created?', ['tech', 'all'], { chartHtml: paperTable('Score process', [['When the test starts', 'Create a session number'], ['While answering', 'Save in small steps'], ['If the page closes', 'Send one last copy']]) }),
+          mc('il10c', talk, ['Bring the race packet on Friday and your own cup on Sunday.', 'Register on the morning of the race.', 'Pay an extra fee at the finish.', 'Skip the water stations.'], 0, '行程表：週五領物資，週日自備杯子。', 80, null, 'The race office asked runners to follow the weekend table. Question: What should a runner do?', ['run', 'city'], { chartHtml: paperTable('Race weekend', [['Friday', 'Pick up the race packet'], ['Sunday', 'Bring your own cup']]) })
         ], topic, 'IL10_G' + genRound, '第四部分：簡短談話')
       ];
 
@@ -4078,54 +4462,54 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
         emitMcq('中級-R1', [
           mc('ir1a', 'By automating the routine sync, the team could ______ more time to the core design.', ['allocate', 'hesitate', 'evaporate', 'imitate'], 0, 'allocate time to 表示把時間分配給核心設計。', 84),
           mc('ir1b', 'The new timetable has ______ the morning bottleneck at the rolling mill.', ['eased', 'denied', 'pretended', 'offended'], 0, 'eased the bottleneck 表示舒緩瓶頸。', 80),
-          mc('ir1c', 'A written handover note can ______ costly mistakes between shifts.', ['prevent', 'preventing', 'prevented', 'prevention'], 0, 'can 後面接原形 prevent。', 82)
-        ], topic, 'IR1_G' + genRound, '第一部分：詞彙與結構'),
+          mc('ir1c', 'A written handover note can ______ costly mistakes between shifts.', ['prevent', 'invite', 'borrow', 'taste'], 0, 'prevent mistakes 表示避免錯誤。', 82)
+        ], topic, 'IR1_G' + genRound, '第一部分：詞彙'),
         emitMcq('中級-R2', [
-          mc('ir2a', 'Not until the logs were checked ______ the real cause of the delay.', ['did the team find', 'the team found', 'found the team', 'the team finding'], 0, 'Not until 放句首，主要子句要助動詞倒裝。', 68),
-          mc('ir2b', 'Had the sensor failed earlier, the night shift ______ the line at once.', ['would have stopped', 'will stop', 'has stopped', 'stopping'], 0, 'Had 開頭的過去假設，主句用 would have stopped。', 70),
-          mc('ir2c', 'Rarely ______ such a clear drop in setup time after a single rule change.', ['have we seen', 'we have seen', 'we saw', 'seen we'], 0, 'Rarely 放句首，要用 have we seen 倒裝。', 66),
-          mc('ir2d', 'Only when the backup copy is stored ______ the test allowed to start.', ['is', 'it is', 'does', 'starting'], 0, 'Only when 倒裝後，主詞 the test 前面用 is。', 69)
-        ], topic, 'IR2_G' + genRound, '第一部分：詞彙與結構'),
+          mc('ir2a', 'The team used a backup copy to ______ the lost schedule.', ['restore', 'pretend', 'wander', 'offend'], 0, 'restore 表示把遺失的排程救回來。', 78),
+          mc('ir2b', 'Her note was ______, so the next shift understood the change at once.', ['concise', 'bitter', 'ancient', 'wooden'], 0, '短而清楚用 concise。', 80),
+          mc('ir2c', 'The sensor reading was not ______, so they checked it again.', ['reliable', 'delicious', 'crowded', 'sour'], 0, '讀數不可靠用 not reliable。', 76),
+          mc('ir2d', 'A five-line handover can ______ a repeated job.', ['avoid', 'bake', 'swim', 'borrow'], 0, 'avoid a repeated job 表示避免同一工作做兩次。', 77)
+        ], topic, 'IR2_G' + genRound, '第一部分：詞彙'),
         emitMcq('中級-R3', [
-          mc('ir3a', 'A steady easy pace builds endurance ______ keeping the effort from getting too hard.', ['while', 'despite', 'unless', 'because of'], 0, 'while 接 V-ing，表示同時避免強度過高。', 81),
-          mc('ir3b', 'The fee looks small; ______, the yearly cost is high once every fund is counted.', ['nevertheless', 'so that', 'in spite', 'because'], 0, 'nevertheless 轉折：單次費用低，但全年加總很高。', 77),
-          mc('ir3c', 'Please confirm the backup ______ you close the maintenance window.', ['before', 'despite', 'during', 'except'], 0, 'before 表示關閉維護窗口之前先確認備份。', 83)
-        ], topic, 'IR3_G' + genRound, '第一部分：詞彙與結構'),
+          mc('ir3a', 'The morning bottleneck became less ______ after the new timetable.', ['severe', 'salty', 'asleep', 'wooden'], 0, '瓶頸減輕，用 less severe。', 81),
+          mc('ir3b', 'Please keep a ______ record of each brew before you change the recipe.', ['brief', 'bitter', 'sudden', 'empty'], 0, '簡短紀錄用 brief record。', 79),
+          mc('ir3c', 'The fee looks small, but the yearly cost is a ______ expense.', ['major', 'polite', 'narrow', 'asleep'], 0, '全年加總後是一筆主要支出，用 major。', 77)
+        ], topic, 'IR3_G' + genRound, '第一部分：詞彙'),
         emitMcq('中級-R4', [
-          mc('ir4a', 'The rule requires that every change ______ checked by an automated test first.', ['be', 'is', 'was', 'being'], 0, 'require that 後面用原形 be。', 73),
-          mc('ir4b', 'The coach insisted that the easy day ______ truly easy.', ['remain', 'remains', 'remained', 'remaining'], 0, 'insist that 後面用原形 remain。', 74),
-          mc('ir4c', 'It is essential that the session number ______ created when the test begins.', ['be', 'is', 'was', 'being'], 0, 'It is essential that 後面用原形 be。', 72)
-        ], topic, 'IR4_G' + genRound, '第一部分：詞彙與結構')
+          mc('ir4a', 'The coach asked for a ______ easy day, not a hidden hard run.', ['genuine', 'sour', 'crowded', 'wooden'], 0, '真正輕鬆的一天用 genuine。', 80),
+          mc('ir4b', 'Diversifying the savings plan reduces ______ risk.', ['concentrated', 'delicious', 'ancient', 'sleepy'], 0, '集中押注的風險用 concentrated risk。', 82),
+          mc('ir4c', 'A reusable cup at the race is a ______ way to cut waste.', ['practical', 'bitter', 'sudden', 'asleep'], 0, '實際可行的做法用 practical。', 78)
+        ], topic, 'IR4_G' + genRound, '第一部分：詞彙')
       ];
 
       const cloze = emitGroup('中級-cloze', [
         {
           k: 'icloze-coffee',
           tags: ['coffee'],
-          passage: 'Coffee extraction follows a clear order. Fruit acids leave the grounds first, (5)______ by sweetness and then by bitter compounds. If the grind is too coarse, the cup tastes thin. (6)______, a short log of each brew lets you change one thing at a time and (7)______ the same flavor again.',
+          passage: 'Coffee extraction follows a clear order. Fruit acids leave the grounds first, (5)______ by sweetness and then by bitter compounds. If the grind is too coarse, the cup tastes thin. (6)______ A short log of each brew lets you change one thing at a time and (7)______ the same flavor again.',
           items: [
             { prompt: '請選出空格 (5) 最合適的字：', opts: ['followed', 'following', 'follows', 'to follow'], ok: 0, why: '過去分詞 followed by 表示接著是甜感。', rate: 76 },
-            { prompt: '請選出空格 (6) 最合適的字：', opts: ['Therefore', 'Despite', 'Instead of', 'Rarely'], ok: 0, why: 'Therefore 承接因果：所以要做沖煮紀錄。', rate: 84 },
+            { prompt: '請選出空格 (6) 最合適的句子：', opts: ['Therefore, write down each brew before you change the recipe.', 'The museum is free only on Sunday night.', 'Runners should skip every water station.', 'Please close the reading room on Monday.'], ok: 0, why: '空格要接「所以先把每次沖煮記下來」這句。', rate: 84 },
             { prompt: '請選出空格 (7) 最合適的字：', opts: ['repeat', 'repeating', 'repeated', 'to repeating'], ok: 0, why: '與 change 並列，共用 to，故用原形 repeat。', rate: 79 }
           ]
         },
         {
           k: 'icloze-run',
           tags: ['run'],
-          passage: 'A useful training week is uneven on purpose. Most kilometers stay easy, (5)______ one session includes faster repeats. Runners who push every day often (6)______ tired before the race. Keeping notes of pace and sleep helps them (7)______ small problems early.',
+          passage: 'A useful training week is uneven on purpose. Most kilometers stay easy, (5)______ one session includes faster repeats. (6)______ Keeping notes of pace and sleep helps them (7)______ small problems early.',
           items: [
             { prompt: '請選出空格 (5) 最合適的字：', opts: ['while', 'during', 'because of', 'instead'], ok: 0, why: 'while 對比「大多數輕鬆，同時有一次更快」。', rate: 80 },
-            { prompt: '請選出空格 (6) 最合適的字：', opts: ['arrive', 'arrives', 'arriving', 'to arrive'], ok: 0, why: 'who 代替複數 runners，動詞用 arrive。', rate: 75 },
+            { prompt: '請選出空格 (6) 最合適的句子：', opts: ['Runners who push every day often arrive tired before the race.', 'The cafe cart sells banana cake for fifty dollars.', 'Please create a session number three days later.', 'Dark coffee should always use boiling water for ten minutes.'], ok: 0, why: '空格要接「天天催快的人往往在賽前就累了」這句。', rate: 75 },
             { prompt: '請選出空格 (7) 最合適的字：', opts: ['notice', 'noticing', 'noticed', 'noticeable'], ok: 0, why: 'help them 後面接原形 notice。', rate: 78 }
           ]
         },
         {
           k: 'icloze-tech',
           tags: ['tech', 'all'],
-          passage: 'When a test page only sends scores at the end, a closed tab can lose the work. A stronger design creates a session number at the start and saves progress (5)______ the way. The final packet is small, (6)______ the browser can send it while the page is closing. Teams that test this path (7)______ fewer missing rows.',
+          passage: 'When a test page only sends scores at the end, a closed tab can lose the work. A stronger design creates a session number at the start and saves progress (5)______ the way. (6)______ Teams that test this path (7)______ fewer missing rows.',
           items: [
             { prompt: '請選出空格 (5) 最合適的字：', opts: ['along', 'between', 'except', 'without'], ok: 0, why: 'along the way 表示過程中逐步儲存。', rate: 77 },
-            { prompt: '請選出空格 (6) 最合適的字：', opts: ['so', 'despite', 'unless', 'instead of'], ok: 0, why: 'so 表示因此瀏覽器來得及在關閉時送出。', rate: 82 },
+            { prompt: '請選出空格 (6) 最合適的句子：', opts: ['The final packet is small, so the browser can send it while the page is closing.', 'The outdoor pool will close for a city swimming race.', 'Buy two loaves of bread and get a free cup of coffee.', 'The night shift should ignore the handover note.'], ok: 0, why: '空格要接「最後一包很小，所以關頁時仍送得出去」這句。', rate: 82 },
             { prompt: '請選出空格 (7) 最合適的字：', opts: ['report', 'reports', 'reporting', 'reported'], ok: 0, why: '主詞 Teams 是複數，用 report。', rate: 74 }
           ]
         }
@@ -4135,31 +4519,31 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
         {
           k: 'iread-sync',
           tags: ['tech', 'all'],
-          passage: 'Web tests often lose scores when the result is sent only at the end. In a sturdier design, a session number is created as soon as the test starts. Answers are stored locally and copied up in small steps. If the tab closes, the browser can still send one last packet during pagehide.',
+          passage: '【說明 A｜問題】\nWeb tests often lose scores when the result is sent only at the end.\n\n【說明 B｜作法】\nA session number is created as soon as the test starts. If the tab closes, the browser can still send one last packet during pagehide.',
           items: [
-            { prompt: 'Why do some web tests lose scores?', opts: ['Because they send the result only at the end.', 'Because they create too many session numbers.', 'Because spreadsheets cannot store numbers.', 'Because users type too quickly.'], ok: 0, why: '只在最後一次送出，中途關頁就會遺失。', rate: 88 },
-            { prompt: 'When is the session number created?', opts: ['As soon as the test starts.', 'Three days after the test.', 'Only after a failing grade.', 'Before the instructions are written.'], ok: 0, why: '開考當下就建立編號。', rate: 86 },
-            { prompt: 'What can still happen during pagehide?', opts: ['One last packet can be sent.', 'The screen becomes larger.', 'The audio is translated offline.', 'The window is forced to stay open.'], ok: 0, why: '關閉過程仍可送出最後一包資料。', rate: 83 }
+            { prompt: 'Why do some web tests lose scores?', opts: ['Because they send the result only at the end.', 'Because they create too many session numbers.', 'Because spreadsheets cannot store numbers.', 'Because users type too quickly.'], ok: 0, why: '說明 A：只在最後一次送出，中途關頁就會遺失。', rate: 88 },
+            { prompt: 'When is the session number created?', opts: ['As soon as the test starts.', 'Three days after the test.', 'Only after a failing grade.', 'Before the instructions are written.'], ok: 0, why: '說明 B：開考當下就建立編號。', rate: 86 },
+            { prompt: 'Why does the design create a session number at the start?', opts: ['So a closed tab can still send the last packet instead of losing an end-only result.', 'To make the screen larger.', 'To translate the audio offline.', 'To stop the window from closing.'], ok: 0, why: '說明 A 是只在最後送出會遺失，說明 B 用開考編號讓關頁仍送出最後一包。', rate: 83 }
           ]
         },
         {
           k: 'iread-run',
           tags: ['run'],
-          passage: 'Recreational runners often go too fast on easy days and too slow on quality days. A cadence near 175 to 185 steps per minute can lower the impact on the joints. Over sixteen weeks, runners who kept eighty percent of weekly distance in easy zone two improved their half-marathon time by about seven percent. Those who ran moderately hard every day improved by about two percent.',
+          passage: '【短文 A｜常見錯誤】\nRecreational runners often go too fast on easy days and too slow on quality days. A cadence near 175 to 185 steps per minute can lower the impact on the joints.\n\n【短文 B｜十六週結果】\nRunners who kept eighty percent of weekly distance in easy zone two improved their half-marathon time by about seven percent. Those who ran moderately hard every day improved by about two percent.',
           items: [
-            { prompt: 'What mistake is described first?', opts: ['Easy days are too fast and quality days are too slow.', 'Runners replace all runs with swimming.', 'They drink no water.', 'They change shoes every day.'], ok: 0, why: '首句就是輕鬆日太快、品質日太慢。', rate: 85 },
-            { prompt: 'What is one benefit of a higher cadence?', opts: ['Less impact on the joints.', 'No need to warm up.', 'A doubled heart rate at once.', 'Permission to skip sleep.'], ok: 0, why: '較高步頻可降低關節衝擊。', rate: 82 },
-            { prompt: 'Which group improved by about seven percent?', opts: ['Runners who kept eighty percent of distance easy.', 'Runners who raced every day.', 'Runners who trained once a month.', 'Runners who avoided a watch.'], ok: 0, why: '80% 週跑量留在輕鬆區的那組進步約 7%。', rate: 84 }
+            { prompt: 'What mistake is described first?', opts: ['Easy days are too fast and quality days are too slow.', 'Runners replace all runs with swimming.', 'They drink no water.', 'They change shoes every day.'], ok: 0, why: '短文 A 首句就是輕鬆日太快、品質日太慢。', rate: 85 },
+            { prompt: 'What is one benefit of a higher cadence?', opts: ['Less impact on the joints.', 'No need to warm up.', 'A doubled heart rate at once.', 'Permission to skip sleep.'], ok: 0, why: '短文 A：較高步頻可降低關節衝擊。', rate: 82 },
+            { prompt: 'Which training choice fits both texts?', opts: ['Keep most distance easy, which also matches the group that improved by about seven percent.', 'Race every day to lower joint impact.', 'Train once a month at a very high cadence.', 'Avoid a watch and run moderately hard every day.'], ok: 0, why: '短文 A 指出輕鬆日不該太快，短文 B 的 7% 就是多數跑量留在輕鬆區的那組。', rate: 84 }
           ]
         },
         {
           k: 'iread-cafe',
           tags: ['coffee', 'city'],
-          passage: 'The harbor cafe will test a quieter morning service in June. From Tuesday to Friday, seats are held only until 8:30 a.m. for guests who booked the day before. Walk-in guests can order after 8:30, but laptop use is limited to forty minutes. On weekends the cafe returns to its usual all-day seating.',
+          passage: '【告示 A｜平日早晨】\nThe harbor cafe will test a quieter morning service in June. From Tuesday to Friday, seats are held only until 8:30 a.m. for guests who booked the day before. Walk-in guests can order after 8:30, but laptop use is limited to forty minutes.\n\n【告示 B｜週末】\nOn weekends the cafe returns to its usual all-day seating. The forty-minute laptop limit is not used on Saturday or Sunday.',
           items: [
-            { prompt: 'Who can keep a seat before 8:30 a.m. on a weekday?', opts: ['Guests who booked the day before.', 'Any walk-in guest.', 'Only weekend visitors.', 'People who stay for three hours.'], ok: 0, why: '平日 8:30 前的座位保留給前一天訂位的客人。', rate: 86 },
-            { prompt: 'What limit applies after 8:30 a.m.?', opts: ['Laptop use is limited to forty minutes.', 'No coffee is sold.', 'The cafe closes.', 'Booking is required for water.'], ok: 0, why: '8:30 後可現場點餐，但筆電限 40 分鐘。', rate: 81 },
-            { prompt: 'What happens on weekends?', opts: ['The cafe uses its usual all-day seating.', 'The cafe is closed.', 'Only booked guests may enter.', 'Laptop use is banned all day.'], ok: 0, why: '週末恢復平常的全天座位。', rate: 83 }
+            { prompt: 'Who can keep a seat before 8:30 a.m. on a weekday?', opts: ['Guests who booked the day before.', 'Any walk-in guest.', 'Only weekend visitors.', 'People who stay for three hours.'], ok: 0, why: '告示 A：平日 8:30 前的座位保留給前一天訂位的客人。', rate: 86 },
+            { prompt: 'What limit applies after 8:30 a.m. on a weekday?', opts: ['Laptop use is limited to forty minutes.', 'No coffee is sold.', 'The cafe closes.', 'Booking is required for water.'], ok: 0, why: '告示 A：8:30 後可現場點餐，但筆電限 40 分鐘。', rate: 81 },
+            { prompt: 'How is a Saturday morning different from a Tuesday morning?', opts: ['Saturday uses all-day seating and does not apply the forty-minute laptop limit.', 'Saturday keeps seats only for guests who booked the day before.', 'Saturday closes the cafe at 8:30 a.m.', 'Saturday bans every guest who brings a laptop.'], ok: 0, why: '告示 A 是平日訂位與筆電限制，告示 B 是週末恢復全天座位且不用 40 分鐘限制。', rate: 83 }
           ]
         }
       ], topic, 'IR', '第三部分：閱讀理解', 8, genRound);
@@ -4168,31 +4552,31 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
         {
           k: 'isp-a',
           items: [
-            { part: '第一部分：朗讀短文', audioOnly: false, timeLimitSec: 25, audioText: 'Clear notes and steady practice matter more than a single busy day. A short training log can show what to change next week.', expectedKeywords: ['notes', 'practice', 'training', 'log', 'change'], instruction: '請在 25 秒內朗讀這段短文。' },
+            { part: '第一部分：朗讀短文', audioOnly: false, timeLimitSec: 25, audioText: 'Clear notes and steady practice matter more than a single busy day. A short training log can show what to change next week.', expectedKeywords: ['notes', 'practice', 'training', 'log', 'change'], instruction: '【試卷印有短文】請直接朗讀下方文字，正試不播放示範音。' },
             { part: '第二部分：回答問題', audioOnly: true, timeLimitSec: 15, audioText: 'How do you make time for exercise on a busy weekday?', expectedKeywords: ['time', 'morning', 'schedule', 'exercise', 'work'], instruction: '請聽兩次後，用 15 秒回答。' },
             { part: '第二部分：回答問題', audioOnly: true, timeLimitSec: 15, audioText: 'What makes an online practice tool useful for you?', expectedKeywords: ['clear', 'feedback', 'practice', 'easy', 'audio'], instruction: '請聽兩次後，用 15 秒回答。' },
             { part: '第二部分：回答問題', audioOnly: true, timeLimitSec: 30, audioText: 'Explain why a long-term savings plan is safer than guessing the market every week.', expectedKeywords: ['long-term', 'plan', 'risk', 'steady', 'market'], instruction: '請聽兩次後，用 30 秒說明。' },
-            { part: '第三部分：看圖敘述', audioOnly: false, timeLimitSec: 45, audioText: 'Describe how a person can balance project work, training, and family time in one week.', expectedKeywords: ['balance', 'work', 'training', 'family', 'week'], instruction: '請用 45 秒說明工作、訓練與家庭如何排進同一週。' }
+            { part: '第三部分：看圖敘述', audioOnly: false, timeLimitSec: 45, svgType: 'balance', printedQuestions: ['1. 圖中的三個部分分別是什麼？', '2. 你覺得這樣安排一週好嗎？為什麼？', '3. 你自己會怎麼調整？'], audioText: 'Describe how a person can balance project work, training, and family time in one week.', expectedKeywords: ['balance', 'work', 'training', 'family', 'week'], instruction: '【試卷印有圖與問題】請看圖後直接回答，不必把題號唸出來。' }
           ]
         },
         {
           k: 'isp-b',
           items: [
-            { part: '第一部分：朗讀短文', audioOnly: false, timeLimitSec: 25, audioText: 'A good handover is short and specific. It tells the next shift what changed, why it changed, and what to watch.', expectedKeywords: ['handover', 'shift', 'changed', 'watch', 'specific'], instruction: '請在 25 秒內朗讀這段短文。' },
+            { part: '第一部分：朗讀短文', audioOnly: false, timeLimitSec: 25, audioText: 'A good handover is short and specific. It tells the next shift what changed, why it changed, and what to watch.', expectedKeywords: ['handover', 'shift', 'changed', 'watch', 'specific'], instruction: '【試卷印有短文】請直接朗讀下方文字，正試不播放示範音。' },
             { part: '第二部分：回答問題', audioOnly: true, timeLimitSec: 15, audioText: 'What do you check before you call a task finished?', expectedKeywords: ['check', 'test', 'finish', 'review', 'note'], instruction: '請聽兩次後，用 15 秒回答。' },
             { part: '第二部分：回答問題', audioOnly: true, timeLimitSec: 15, audioText: 'How do you choose a place to study or train?', expectedKeywords: ['quiet', 'near', 'time', 'place', 'easy'], instruction: '請聽兩次後，用 15 秒回答。' },
             { part: '第二部分：回答問題', audioOnly: true, timeLimitSec: 30, audioText: 'Describe a problem you solved by changing one small habit.', expectedKeywords: ['problem', 'habit', 'change', 'result', 'learned'], instruction: '請聽兩次後，用 30 秒描述。' },
-            { part: '第三部分：看圖敘述', audioOnly: false, timeLimitSec: 45, audioText: 'Describe a cafe or training space that helps people focus, and say why the details matter.', expectedKeywords: ['space', 'quiet', 'light', 'focus', 'because'], instruction: '請用 45 秒描述一個讓人專心的空間。' }
+            { part: '第三部分：看圖敘述', audioOnly: false, timeLimitSec: 45, svgType: 'balance', printedQuestions: ['1. 圖中三欄分別代表哪三件事？', '2. 哪一欄最容易被忽略？', '3. 你會怎麼把這三件事排進同一週？'], audioText: 'Describe how work, training, and home time can fit into one week, and say why the balance matters.', expectedKeywords: ['work', 'training', 'home', 'balance', 'week'], instruction: '【試卷印有圖與問題】請看圖後直接回答，不必把題號唸出來。' }
           ]
         },
         {
           k: 'isp-c',
           items: [
-            { part: '第一部分：朗讀短文', audioOnly: false, timeLimitSec: 25, audioText: 'Hotter water is not always better. Light coffee needs more heat, while darker coffee can taste harsh if the water is too hot.', expectedKeywords: ['water', 'coffee', 'heat', 'light', 'dark'], instruction: '請在 25 秒內朗讀這段短文。' },
+            { part: '第一部分：朗讀短文', audioOnly: false, timeLimitSec: 25, audioText: 'Hotter water is not always better. Light coffee needs more heat, while darker coffee can taste harsh if the water is too hot.', expectedKeywords: ['water', 'coffee', 'heat', 'light', 'dark'], instruction: '【試卷印有短文】請直接朗讀下方文字，正試不播放示範音。' },
             { part: '第二部分：回答問題', audioOnly: true, timeLimitSec: 15, audioText: 'What helps you recover after a long day?', expectedKeywords: ['rest', 'walk', 'water', 'sleep', 'family'], instruction: '請聽兩次後，用 15 秒回答。' },
             { part: '第二部分：回答問題', audioOnly: true, timeLimitSec: 15, audioText: 'Why do you keep records of your study or training?', expectedKeywords: ['record', 'progress', 'remember', 'plan', 'improve'], instruction: '請聽兩次後，用 15 秒回答。' },
             { part: '第二部分：回答問題', audioOnly: true, timeLimitSec: 30, audioText: 'Explain how a team should share bad news early instead of hiding it until the deadline.', expectedKeywords: ['early', 'team', 'problem', 'deadline', 'share'], instruction: '請聽兩次後，用 30 秒說明。' },
-            { part: '第三部分：看圖敘述', audioOnly: false, timeLimitSec: 45, audioText: 'Describe a weekly plan that includes one hard workout, several easy days, and time to review mistakes.', expectedKeywords: ['weekly', 'hard', 'easy', 'review', 'plan'], instruction: '請用 45 秒描述一週的訓練與檢討安排。' }
+            { part: '第三部分：看圖敘述', audioOnly: false, timeLimitSec: 45, svgType: 'balance', printedQuestions: ['1. 圖中的人把時間分成哪三塊？', '2. 如果工作變多，運動和家庭會怎樣？', '3. 你同意這種分法嗎？'], audioText: 'Describe the three parts of the week in the picture and give your opinion.', expectedKeywords: ['work', 'run', 'home', 'week', 'balance'], instruction: '【試卷印有圖與問題】請看圖後直接回答，不必把題號唸出來。' }
           ]
         }
       ], topic, 'IS', genRound);
@@ -4343,8 +4727,12 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
       loadSavedState();
       renderSheetRecordsTable();
       applyAndroidViewportLock();
+      checkInstalledAppVersion();
       seedDynamicBanks();
       verifyGoogleAccountOnStartup();
+
+      const btnVersionContinue = document.getElementById('btn-app-version-continue');
+      if (btnVersionContinue) btnVersionContinue.addEventListener('click', () => hideOutdatedVersionGate());
 
       const btnAiGenLobby = document.getElementById('btn-ai-generate-questions');
       if (btnAiGenLobby) {
@@ -4376,13 +4764,17 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
       // Navigation tabs (all guarded when not logged into Google)
       document.getElementById('nav-btn-lobby').addEventListener('click', () => {
         requireAuthOrNavigate(() => {
-          state.activeTab = 'lobby';
-          updateActiveView();
+          requestLeaveExamScreen('測驗大廳', () => {
+            state.activeTab = 'lobby';
+            updateActiveView();
+          });
         });
       });
       document.getElementById('nav-btn-practice').addEventListener('click', () => {
         requireAuthOrNavigate(() => {
-          openPracticeMode();
+          requestLeaveExamScreen('自主練習', () => {
+            openPracticeMode();
+          });
         });
       });
       document.getElementById('nav-btn-exam').addEventListener('click', () => {
@@ -4392,14 +4784,17 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
           } else {
             state.activeTab = 'exam';
             updateActiveView();
+            if (state.exam.active) armExamBackGuard();
           }
         });
       });
       document.getElementById('nav-btn-records').addEventListener('click', () => {
         requireAuthOrNavigate(() => {
-          state.activeTab = 'records';
-          renderSheetRecordsTable();
-          updateActiveView();
+          requestLeaveExamScreen('成績紀錄', () => {
+            state.activeTab = 'records';
+            renderSheetRecordsTable();
+            updateActiveView();
+          });
         });
       });
 
@@ -4452,14 +4847,14 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
       });
 
       // Stage switcher tabs
-      document.getElementById('stage-tab-listening').addEventListener('click', () => switchExamStage('listening'));
-      document.getElementById('stage-tab-reading').addEventListener('click', () => switchExamStage('reading'));
-      document.getElementById('stage-tab-speaking').addEventListener('click', () => switchExamStage('speaking'));
-      document.getElementById('stage-tab-writing').addEventListener('click', () => switchExamStage('writing'));
+      document.getElementById('stage-tab-listening').addEventListener('click', () => requestExamStage('listening'));
+      document.getElementById('stage-tab-reading').addEventListener('click', () => requestExamStage('reading'));
+      document.getElementById('stage-tab-speaking').addEventListener('click', () => requestExamStage('speaking'));
+      document.getElementById('stage-tab-writing').addEventListener('click', () => requestExamStage('writing'));
 
-      document.getElementById('btn-go-next-reading').addEventListener('click', () => switchExamStage('reading'));
-      document.getElementById('btn-go-next-speaking').addEventListener('click', () => switchExamStage('speaking'));
-      document.getElementById('btn-go-next-writing').addEventListener('click', () => switchExamStage('writing'));
+      document.getElementById('btn-go-next-reading').addEventListener('click', () => requestExamStage('reading'));
+      document.getElementById('btn-go-next-speaking').addEventListener('click', () => requestExamStage('speaking'));
+      document.getElementById('btn-go-next-writing').addEventListener('click', () => requestExamStage('writing'));
 
       // AI Grade Writing button
       document.getElementById('btn-ai-grade-writing').addEventListener('click', () => {
@@ -4471,53 +4866,90 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
       // Simulate unexpected window close (testing visibilitychange + navigator.sendBeacon)
       document.getElementById('btn-simulate-close').addEventListener('click', () => {
         if (!state.exam.sessionId) return;
-        stopExamTimer();
-        state.exam.active = false;
-        document.getElementById('global-session-label').textContent = '已中途關閉';
-        const sid = state.exam.sessionId;
-        const checkpoint = state.exam.lastCheckpoint;
-        syncCurrentExamToSheet('中途關閉', `考生自行關閉視窗，透過 pagehide/sendBeacon 自動寫入當下成績（停留於 ${checkpoint}）`, true)
-          .then((ok) => {
-            toastSheetResult(
-              ok,
-              '⚡ 已觸發「自行關閉視窗」自動寫入！',
-              `測驗序號 ${sid} 已更新為「中途關閉」並保留目前得分寫入試算表。`,
-              'amber',
-              '中途成績尚未寫入試算表'
-            );
-          });
-        state.activeTab = 'records';
-        updateActiveView();
+        const runClose = () => {
+          stopExamTimer();
+          state.exam.active = false;
+          document.getElementById('global-session-label').textContent = '已中途關閉';
+          const sid = state.exam.sessionId;
+          const checkpoint = state.exam.lastCheckpoint;
+          syncCurrentExamToSheet('中途關閉', `考生自行關閉視窗，透過 pagehide/sendBeacon 自動寫入當下成績（停留於 ${checkpoint}）`, true)
+            .then((ok) => {
+              toastSheetResult(
+                ok,
+                '⚡ 已觸發「自行關閉視窗」自動寫入！',
+                `測驗序號 ${sid} 已更新為「中途關閉」並保留目前得分寫入試算表。`,
+                'amber',
+                '中途成績尚未寫入試算表'
+              );
+            });
+          state.activeTab = 'records';
+          updateActiveView();
+        };
+        if (!state.exam.active) {
+          runClose();
+          return;
+        }
+        showExamLeaveGuard({
+          title: '誤觸／離開目前程序',
+          body: '偵測到可能誤觸「模擬關閉視窗」。確認後這一場會存成中途關閉。',
+          leaveLabel: '確認離開並關閉',
+          onLeave: runClose
+        });
       });
 
       // Normal Submit Exam
       document.getElementById('btn-submit-exam').addEventListener('click', () => {
         if (!state.exam.sessionId) return;
-        stopExamTimer();
-        state.exam.active = false;
-        state.exam.lastCheckpoint = '已完成全卷';
-        document.getElementById('global-session-label').textContent = '已交卷';
-        const finishedLevel = state.exam.level;
-        syncCurrentExamToSheet('已完成', `考生正常交卷完試（${finishedLevel} 30分鐘雙階段測驗）`, false)
-          .then((ok) => {
-            toastSheetResult(
-              ok,
-              '🎉 測驗完成並已寫入「全民英檢成績」',
-              '您的四科成績與合格判定已自動儲存至試算表！',
-              'emerald',
-              '測驗已交卷，但成績尚未寫入試算表'
-            );
-          });
-        state.activeTab = 'records';
-        updateActiveView();
+        const runSubmit = () => {
+          stopExamTimer();
+          state.exam.active = false;
+          state.exam.lastCheckpoint = '已完成全卷';
+          document.getElementById('global-session-label').textContent = '已交卷';
+          const finishedLevel = state.exam.level;
+          syncCurrentExamToSheet('已完成', `考生正常交卷完試（${finishedLevel} 30分鐘雙階段測驗）`, false)
+            .then((ok) => {
+              toastSheetResult(
+                ok,
+                '🎉 測驗完成並已寫入「全民英檢成績」',
+                '您的四科成績與合格判定已自動儲存至試算表！',
+                'emerald',
+                '測驗已交卷，但成績尚未寫入試算表'
+              );
+            });
+          state.activeTab = 'records';
+          updateActiveView();
+        };
+        if (!state.exam.active) {
+          runSubmit();
+          return;
+        }
+        showExamLeaveGuard({
+          title: '誤觸／離開目前程序',
+          body: '偵測到可能誤觸交卷。確認後會結束測驗並寫入成績。',
+          leaveLabel: '確認交卷離開',
+          onLeave: runSubmit
+        });
       });
 
       // REAL BROWSER UNLOAD / VISIBILITYCHANGE / PAGEHIDE LISTENERS
       // 只要開始測驗，不管自行關閉或結束，自動將測驗結果儲存至試算表
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden' && state.exam.active) {
+        if (!state.exam.active) return;
+        if (document.visibilityState === 'hidden') {
+          state.exam.hiddenAt = Date.now();
           syncCurrentExamToSheet('進行中(背景自動備份)', `畫面切換或隱藏時自動備份於 ${state.exam.lastCheckpoint}`, true);
+          return;
         }
+        const hiddenAt = state.exam.hiddenAt || 0;
+        state.exam.hiddenAt = 0;
+        if (!hiddenAt || Date.now() - hiddenAt < 800) return;
+        if (examLeaveIntent) return;
+        showExamLeaveGuard({
+          title: '誤觸／離開',
+          body: '偵測到測驗畫面曾被切換或離開。計時沒有暫停，請回到目前程序繼續作答。',
+          stayLabel: '繼續作答',
+          where: examStayText()
+        });
       });
 
       window.addEventListener('pagehide', () => {
@@ -4527,9 +4959,42 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
         }
       });
 
-      window.addEventListener('beforeunload', () => {
-        if (state.exam.active) {
-          syncCurrentExamToSheet('中途關閉', `考生關閉視窗或重新整理，由 beforeunload + sendBeacon 自動寫入`, true);
+      window.addEventListener('beforeunload', (event) => {
+        if (!state.exam.active) return;
+        event.preventDefault();
+        event.returnValue = '';
+      });
+
+      window.addEventListener('popstate', () => {
+        if (!state.exam || !state.exam.active) return;
+        try { history.pushState({ geptExamGuard: 1 }, ''); } catch (e) {}
+        if (examLeaveIntent) return;
+        showExamLeaveGuard({
+          title: '誤觸／離開目前程序',
+          body: '偵測到返回鍵或上一頁，可能誤觸而離開目前程序。測驗仍在計時。',
+          leaveLabel: '離開測驗畫面',
+          onLeave: () => {
+            if (state.activeTab === 'lobby') return;
+            state.activeTab = 'lobby';
+            updateActiveView();
+          }
+        });
+      });
+
+      const examLeaveGuard = document.getElementById('exam-leave-guard');
+      if (examLeaveGuard) {
+        examLeaveGuard.addEventListener('click', (event) => {
+          if (event.target === examLeaveGuard) dismissExamLeaveGuard(false);
+        });
+      }
+      const examLeaveStay = document.getElementById('exam-leave-guard-stay');
+      const examLeaveGo = document.getElementById('exam-leave-guard-go');
+      if (examLeaveStay) examLeaveStay.addEventListener('click', () => dismissExamLeaveGuard(false));
+      if (examLeaveGo) examLeaveGo.addEventListener('click', () => dismissExamLeaveGuard(true));
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && examLeaveIntent) {
+          event.preventDefault();
+          dismissExamLeaveGuard(false);
         }
       });
 
