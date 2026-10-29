@@ -8,6 +8,11 @@
         android:xlargeScreens="true"
         android:requiresSmallestWidthDp="600" />
 
+    <!-- Android 11 起看不到未宣告的套件。沒有這行時，Credential Manager 找不到 Google Play 服務，登入會立刻失敗。 -->
+    <queries>
+        <package android:name="com.google.android.gms" />
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
