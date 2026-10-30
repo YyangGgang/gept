@@ -8,6 +8,7 @@
       var cap = window.Capacitor;
       if (!cap || typeof cap.getPlatform !== 'function' || cap.getPlatform() !== 'android') return;
       if (typeof cap.isNativePlatform === 'function' && !cap.isNativePlatform()) return;
+      document.documentElement.classList.add('native-tablet');
       var meta = document.querySelector('meta[name="viewport"]');
       if (meta) meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
     })();
@@ -20,10 +21,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
     body {
       font-family: 'Inter', 'Noto Sans TC', sans-serif;
       background-color: #f8fafc;
       color: #0f172a;
+      overflow-x: hidden;
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
     }
     @keyframes pulse-bar {
       0%, 100% { transform: scaleY(0.3); }
@@ -44,7 +51,7 @@
       padding-top: 1.25rem;
       padding-bottom: 0.35rem;
     }
-    @media (min-width: 1024px) {
+    @media (min-width: 600px) {
       .stage-tabs-sticky {
         position: sticky;
         top: var(--site-header-h, 7rem);
@@ -84,11 +91,21 @@
     }
     #global-timer-bar {
       position: fixed;
-      right: max(1rem, calc((100vw - 80rem) / 2 + 1.5rem));
+      right: max(1rem, env(safe-area-inset-right), calc((100vw - 80rem) / 2 + 1.5rem));
       z-index: 45;
     }
     #exam-stage-tabs-sticky.timer-docked {
       box-sizing: border-box;
+    }
+    #site-main-nav {
+      max-width: 100%;
+      min-width: 0;
+      width: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+    #site-main-nav button {
+      flex-shrink: 0;
+      white-space: nowrap;
     }
     #phone-unsupported {
       display: none;
@@ -101,6 +118,34 @@
       }
       #phone-unsupported {
         display: flex !important;
+      }
+      html.native-tablet body > header,
+      html.native-tablet body > main {
+        display: block !important;
+      }
+      html.native-tablet #toast-container {
+        display: flex !important;
+      }
+      html.native-tablet #phone-unsupported {
+        display: none !important;
+      }
+    }
+    @media (min-width: 600px) and (max-width: 1023px) {
+      #site-brand-bar h1 {
+        font-size: 1rem;
+        line-height: 1.35;
+      }
+      #site-brand-bar p {
+        line-height: 1.45;
+      }
+      #site-main-nav button {
+        font-size: 0.8rem;
+        padding-left: 0.7rem;
+        padding-right: 0.7rem;
+      }
+      main {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
       }
     }
     @media (pointer: coarse) and (min-width: 768px) {
@@ -138,7 +183,7 @@
     <div class="max-w-md text-center space-y-3">
       <div class="mx-auto w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center font-bold">GEPT</div>
       <h2 class="text-xl font-bold">請改用平板或電腦</h2>
-      <p class="text-sm text-slate-300 leading-relaxed">本測驗只提供電腦網頁與 Android 平板橫向操作。手機畫面不支援。</p>
+      <p class="text-sm text-slate-300 leading-relaxed">本測驗只提供電腦網頁與 Android 平板，直式與橫式都可以。手機畫面不支援。</p>
     </div>
   </div>
 
@@ -169,12 +214,12 @@
   <!-- Top Navigation & User Profile Bar (右上角顯示 Google 中文姓名) -->
   <header class="sticky top-0 z-40 bg-slate-900 text-white shadow-md border-b border-slate-800">
     <div id="site-brand-bar" class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-lg tracking-wider shadow-inner">
+      <div class="flex items-center gap-3 min-w-0 flex-1">
+        <div class="w-10 h-10 shrink-0 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-lg tracking-wider shadow-inner">
           GEPT
         </div>
-        <div>
-          <div class="flex items-center gap-2">
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
             <h1 class="font-bold text-base sm:text-lg tracking-tight">台灣全民英檢 30 分鐘雙階段測驗平台</h1>
             <span class="hidden md:inline-block text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
               LTTC 等比例量尺計分
@@ -186,15 +231,15 @@
       </div>
 
       <!-- Right-hand Corner Google Auth Display (以Google登入抓取中文名字顯示於右上角) -->
-      <div id="user-profile-badge" class="flex items-center gap-3 bg-slate-800/90 border border-slate-700 px-3.5 py-1.5 rounded-xl">
+      <div id="user-profile-badge" class="flex items-center gap-3 shrink-0 bg-slate-800/90 border border-slate-700 px-3.5 py-1.5 rounded-xl">
         <!-- Dynamically populated by renderHeaderAuth() -->
       </div>
     </div>
 
     <!-- Sub-navigation Tabs -->
     <div id="site-subnav" class="bg-slate-800/70 border-t border-slate-800">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between flex-wrap gap-2">
-        <nav id="site-main-nav" class="flex items-center gap-1 overflow-x-auto py-1.5" aria-label="主導覽選單">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between flex-wrap gap-2 min-w-0">
+        <nav id="site-main-nav" class="flex items-center gap-1 overflow-x-auto py-1.5 min-w-0 w-full" aria-label="主導覽選單">
           <button id="nav-btn-lobby" type="button" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-indigo-600 text-white">
             1. 測驗大廳與級別選擇
           </button>
@@ -285,7 +330,7 @@
         <!-- Elementary Card (初級) -->
         <div class="bg-white rounded-2xl border-2 border-indigo-600 shadow-sm overflow-hidden flex flex-col justify-between">
           <div>
-            <div class="bg-indigo-600 px-6 py-4 text-white flex items-center justify-between">
+            <div class="bg-indigo-600 px-6 py-4 text-white flex flex-wrap items-center justify-between gap-2">
               <div>
                 <span class="text-xs font-semibold uppercase tracking-wider text-indigo-200">CEFR A2 基礎級</span>
                 <h3 class="text-xl font-bold mt-0.5">全民英檢【初級 Elementary】</h3>
@@ -294,7 +339,7 @@
             </div>
 
             <div class="p-6 space-y-4">
-              <div class="grid grid-cols-2 gap-3 text-xs">
+              <div class="grid grid-cols-1 min-[720px]:grid-cols-2 gap-3 text-xs">
                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
                   <div class="font-bold text-slate-800 mb-1">第一階段（初試 18 分鐘）</div>
                   <ul class="space-y-1 text-slate-600">
@@ -335,7 +380,7 @@
         <!-- Intermediate Card (中級) -->
         <div class="bg-white rounded-2xl border-2 border-slate-200 hover:border-blue-600 shadow-sm overflow-hidden flex flex-col justify-between transition-colors">
           <div>
-            <div class="bg-slate-800 px-6 py-4 text-white flex items-center justify-between">
+            <div class="bg-slate-800 px-6 py-4 text-white flex flex-wrap items-center justify-between gap-2">
               <div>
                 <span class="text-xs font-semibold uppercase tracking-wider text-blue-300">CEFR B1 進階級</span>
                 <h3 class="text-xl font-bold mt-0.5">全民英檢【中級 Intermediate】</h3>
@@ -344,7 +389,7 @@
             </div>
 
             <div class="p-6 space-y-4">
-              <div class="grid grid-cols-2 gap-3 text-xs">
+              <div class="grid grid-cols-1 min-[720px]:grid-cols-2 gap-3 text-xs">
                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
                   <div class="font-bold text-slate-800 mb-1">第一階段（初試 18 分鐘）</div>
                   <ul class="space-y-1 text-slate-600">
@@ -627,7 +672,7 @@
           <div class="stage-sticky-head flex items-center justify-between flex-wrap gap-2 px-5 py-4 border-b border-slate-100 rounded-t-2xl">
             <div>
               <h3 class="text-base font-bold text-slate-900">🎧 第一階段：聽力測驗（共 10 題，每題 12 分，滿分 120 分）</h3>
-              <p class="text-xs text-slate-500 mt-0.5">比照線上測驗，一次只顯示一題。看圖辨義只見大圖與 A／B／C，點題號旁的播放鍵，每題只播一次。問答、對話、談話印出文字選項；初級短文聽解改選圖片。</p>
+              <p class="text-xs text-slate-500 mt-0.5">題目一次全部列出，和練習相同。題幹不印在試卷上，每題只播一次。看圖辨義只見圖與 A／B／C／D；問答、對話、談話印出文字選項；初級短文聽解改選圖片。中級部分對話與談話附有圖表。</p>
             </div>
             <button type="button" id="btn-go-next-reading" class="px-3.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold">
               前往下一科：一階閱讀測驗 →
@@ -947,8 +992,6 @@
         lastCheckpoint: '尚未開始',
         listeningAnswers: {},
         listeningPlayed: {},
-        listenIndex: 0,
-        listeningPlaying: '',
         readingAnswers: {},
         speakingScores: {}, // id -> { playedTwice, recorded, transcript, fluencyBand, grammarBand, score100 }
         writingAnswers: {
@@ -1319,6 +1362,7 @@
 
     function applyAndroidViewportLock() {
       if (!isAndroidTabletApp()) return;
+      document.documentElement.classList.add('native-tablet');
       const meta = document.querySelector('meta[name="viewport"]');
       if (meta) meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
     }
@@ -1806,7 +1850,7 @@
       const activeTabs = state.activeTab === 'exam' ? examTabs
         : state.activeTab === 'practice' ? pracTabs
         : null;
-      const tabsStick = window.innerWidth >= 1024;
+      const tabsStick = window.innerWidth >= 600;
       const tabsH = tabsStick && activeTabs && !activeTabs.closest('.hidden') ? activeTabs.offsetHeight : 0;
       document.documentElement.style.setProperty('--active-stage-tabs-h', tabsH + 'px');
       fitSheetRecordsHeight();
@@ -2761,189 +2805,79 @@
     // =========================================================================
     // 6. RENDER EXAM SECTIONS (LISTENING, READING, STAGE 2 SPEAKING, WRITING)
     // =========================================================================
-    function partShortName(part) {
-      const name = part || '';
-      const cut = name.indexOf('：');
-      return cut >= 0 ? name.slice(cut + 1).trim() : name;
-    }
-
-    function openExamPictureZoom(svgHtml) {
-      let box = document.getElementById('listen-zoom-lightbox');
-      if (!box) {
-        box = document.createElement('div');
-        box.id = 'listen-zoom-lightbox';
-        box.className = 'fixed inset-0 z-[80] bg-black/80 overflow-y-auto cursor-pointer';
-        document.body.appendChild(box);
-      }
-      box.innerHTML = `
-        <div class="max-w-[1000px] mx-auto px-4 pt-3 pb-8">
-          <div class="text-right text-white text-sm mb-2">關閉圖片</div>
-          <div class="bg-white p-3">${svgHtml}</div>
-        </div>`;
-      box.classList.remove('hidden');
-      box.onclick = () => box.classList.add('hidden');
-    }
-
-    function renderListeningSection(scrollIntoView) {
+    function renderListeningSection() {
       const container = document.getElementById('listening-questions-container');
       if (!container) return;
+      container.innerHTML = '';
       const bank = bankForExam(state.exam.level).listening;
-      if (!bank.length) {
-        container.innerHTML = '';
-        return;
-      }
 
       if (!state.exam.listeningPlayed) state.exam.listeningPlayed = {};
-      if (typeof state.exam.listenIndex !== 'number') state.exam.listenIndex = 0;
-      if (state.exam.listenIndex < 0 || state.exam.listenIndex >= bank.length) {
-        state.exam.listenIndex = Math.max(0, Math.min(state.exam.listenIndex, bank.length - 1));
-      }
+      bank.forEach((q, idx) => {
+        const selected = state.exam.listeningAnswers[q.id];
+        const played = !!state.exam.listeningPlayed[q.id];
+        const card = document.createElement('div');
+        card.className = 'p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3';
 
-      const idx = state.exam.listenIndex;
-      const q = bank[idx];
-      const selected = state.exam.listeningAnswers[q.id];
-      const played = !!state.exam.listeningPlayed[q.id];
-      const playing = state.exam.listeningPlaying === q.id;
-      const face = listeningFace(q.part);
+        let optionsHtml = '';
+        q.options.forEach((opt, oIdx) => {
+          const isChecked = selected === oIdx;
+          optionsHtml += `
+            <label class="flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-colors text-xs sm:text-sm ${isChecked ? 'bg-indigo-50 border-indigo-500 font-semibold text-indigo-950' : 'bg-white border-slate-200 hover:border-slate-300'}">
+              <input type="radio" name="listen_${q.id}" value="${oIdx}" ${isChecked ? 'checked' : ''} data-qid="${q.id}" data-qnum="${idx + 1}" class="listen-radio text-indigo-600 focus:ring-indigo-500">
+              ${listeningChoiceInner(q, opt, oIdx, false)}
+            </label>
+          `;
+        });
 
-      let choices = '';
-      q.options.forEach((opt, oIdx) => {
-        const isChecked = selected === oIdx;
-        let inner = '';
-        if (face === 'picture-stem') {
-          inner = `<span class="font-bold">${optionLetter(oIdx)}.</span>`;
-        } else if (face === 'picture-choices' && q.optionSvgs && q.optionSvgs[oIdx]) {
-          inner = `<span class="font-bold mr-3">${optionLetter(oIdx)}.</span>${getListeningSvg(q.optionSvgs[oIdx], 'w-36 h-28')}`;
-        } else {
-          inner = `<span>${opt}</span>`;
-        }
-        choices += `
-          <label class="flex items-start gap-3 py-1.5 cursor-pointer text-[#993333] text-sm sm:text-base ${isChecked ? 'font-bold' : ''}">
-            <input type="radio" name="listen_${q.id}" value="${oIdx}" ${isChecked ? 'checked' : ''} data-qid="${q.id}" data-qnum="${idx + 1}" class="listen-radio mt-1.5 shrink-0">
-            <span class="leading-relaxed">${inner}</span>
-          </label>`;
+        const playButton = played
+          ? `<button type="button" disabled class="px-3 py-1.5 rounded-lg bg-slate-200 text-slate-500 text-xs font-semibold">本題已播出（正試只播一次）</button>`
+          : `<button type="button" data-qid="${q.id}" data-qnum="${idx + 1}" class="btn-play-listening px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm"><span>播放聽力（只播一次）</span></button>`;
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3 flex-wrap">
+            <div>
+              <span class="text-[11px] font-bold text-indigo-600 uppercase">${q.part}</span>
+              <h4 class="text-sm font-bold text-slate-900 mt-0.5">第 ${idx + 1} 題</h4>
+              <p class="text-xs text-slate-600 mt-0.5">${listeningInstruction(q)}</p>
+            </div>
+            ${playButton}
+          </div>
+          ${listeningStemHtml(q)}
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            ${optionsHtml}
+          </div>
+        `;
+        container.appendChild(card);
       });
 
-      const playButton = played && !playing
-        ? `<button type="button" disabled class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-slate-300 text-white align-middle ml-2" title="本題已播出，只播一次" aria-label="本題已播出"><svg viewBox="0 0 24 24" class="w-4 h-4 fill-current" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>`
-        : `<button type="button" data-qid="${q.id}" data-qnum="${idx + 1}" class="btn-play-listening inline-flex items-center justify-center w-9 h-9 rounded-full ${playing ? 'bg-sky-300' : 'bg-[#0099d8] hover:bg-[#0077aa]'} text-white align-middle ml-2 shadow-sm" ${playing ? 'disabled' : ''} aria-label="播放聽力"><svg viewBox="0 0 24 24" class="w-4 h-4 fill-current" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>`;
-      const playStatus = playing ? '播放中' : (played ? '本題已播出' : '');
-
-      let stem = '';
-      if (face === 'picture-stem' && q.svgType) {
-        stem = `
-          <div class="relative max-w-[600px] mx-auto my-5">
-            ${getListeningSvg(q.svgType, 'w-full h-auto block')}
-            <button type="button" class="btn-zoom-listen absolute bottom-2 right-2 w-12 h-12 rounded-md bg-slate-500/85 hover:bg-slate-600 text-white flex items-center justify-center" aria-label="放大圖片">
-              <svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M11 8v6M8 11h6"/></svg>
-            </button>
-          </div>`;
-      } else if (q.chartHtml) {
-        stem = `<div class="my-5 p-4 rounded-lg bg-white border border-slate-300 inline-block max-w-full overflow-x-auto">${q.chartHtml}</div>`;
-      }
-
-      const prevBtn = idx > 0
-        ? `<button type="button" id="btn-listen-prev" class="min-w-[90px] h-8 px-3 border border-slate-500 bg-[#f3f3f3] hover:bg-white text-sm text-slate-800">上一題</button>`
-        : '';
-      const nextLabel = idx < bank.length - 1 ? '下一題' : '下一科';
-
-      container.innerHTML = `
-        <div class="gept-listen-field border-2 border-[#CBCBCB] bg-white">
-          <div class="bg-[#999999] text-[#FFFFCC] px-2 py-1.5 text-sm flex items-center justify-between">
-            <span>${partShortName(q.part)}</span>
-            <span class="text-xs">${idx + 1} / ${bank.length}</span>
-          </div>
-          <div class="px-4 py-6 sm:px-8 sm:py-8">
-            <div class="text-[#006699] text-xl">
-              <span>${idx + 1}.</span>
-              ${playButton}
-              <span class="text-xs text-slate-500 ml-2 align-middle">${playStatus}</span>
-            </div>
-            ${stem}
-            <div class="bg-[#F1EAE2] px-4 py-3 mt-2">${choices}</div>
-            <div class="flex items-center justify-between gap-3 mt-5 flex-wrap">
-              <div class="flex items-center gap-2">
-                ${prevBtn}
-                <button type="button" id="btn-listen-next" class="min-w-[90px] h-8 px-3 border border-slate-500 bg-[#f3f3f3] hover:bg-white text-sm text-slate-800">${nextLabel}</button>
-              </div>
-              <button type="button" id="btn-listen-finish" class="min-w-[90px] h-8 px-3 border border-[#990033] bg-white hover:bg-rose-50 text-sm text-[#990033]">交卷</button>
-            </div>
-          </div>
-        </div>`;
-
-      const playBtn = container.querySelector('.btn-play-listening');
-      if (playBtn) {
-        playBtn.addEventListener('click', () => {
-          if (state.exam.listeningPlayed[q.id] || state.exam.listeningPlaying === q.id) return;
-          state.exam.listeningPlayed[q.id] = true;
-          state.exam.listeningPlaying = q.id;
-          state.exam.lastCheckpoint = `第一階段-聽力第${idx + 1}題`;
-          renderListeningSection();
-          updateLiveScoreStrip();
+      container.querySelectorAll('.btn-play-listening').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const qid = btn.getAttribute('data-qid');
+          const qnum = btn.getAttribute('data-qnum');
+          const q = bank.find(item => item.id === qid);
+          if (!q || state.exam.listeningPlayed[qid]) return;
+          state.exam.listeningPlayed[qid] = true;
+          state.exam.lastCheckpoint = `第一階段-聽力第${qnum}題`;
+          btn.innerHTML = '<span>語音播放中（只播一次）</span>';
+          btn.disabled = true;
           speakEnglishOnce(q.audioText, state.exam.level === '初級' ? 0.92 : 1.0, () => {
-            if (state.exam.listeningPlaying === q.id) state.exam.listeningPlaying = '';
             renderListeningSection();
             updateLiveScoreStrip();
           });
         });
-      }
-
-      const zoomBtn = container.querySelector('.btn-zoom-listen');
-      if (zoomBtn && q.svgType) {
-        zoomBtn.addEventListener('click', (event) => {
-          event.stopPropagation();
-          openExamPictureZoom(getListeningSvg(q.svgType, 'w-full h-auto block'));
-        });
-      }
+      });
 
       container.querySelectorAll('.listen-radio').forEach(radio => {
         radio.addEventListener('change', () => {
-          state.exam.listeningAnswers[q.id] = Number(radio.value);
-          state.exam.lastCheckpoint = `第一階段-聽力第${idx + 1}題`;
+          const qid = radio.getAttribute('data-qid');
+          const qnum = radio.getAttribute('data-qnum');
+          state.exam.listeningAnswers[qid] = Number(radio.value);
+          state.exam.lastCheckpoint = `第一階段-聽力第${qnum}題`;
           renderListeningSection();
           updateLiveScoreStrip();
           syncCurrentExamToSheet('進行中');
         });
       });
-
-      const prev = document.getElementById('btn-listen-prev');
-      if (prev) {
-        prev.addEventListener('click', () => {
-          state.exam.listenIndex = idx - 1;
-          state.exam.lastCheckpoint = `第一階段-聽力第${idx}題`;
-          renderListeningSection(true);
-          updateLiveScoreStrip();
-        });
-      }
-
-      const next = document.getElementById('btn-listen-next');
-      if (next) {
-        next.addEventListener('click', () => {
-          if (idx >= bank.length - 1) {
-            state.exam.lastCheckpoint = '第一階段-閱讀第1題';
-            updateLiveScoreStrip();
-            switchExamStage('reading');
-            return;
-          }
-          state.exam.listenIndex = idx + 1;
-          state.exam.lastCheckpoint = `第一階段-聽力第${idx + 2}題`;
-          renderListeningSection(true);
-          updateLiveScoreStrip();
-        });
-      }
-
-      const finish = document.getElementById('btn-listen-finish');
-      if (finish) {
-        finish.addEventListener('click', () => {
-          const submit = document.getElementById('btn-submit-exam');
-          if (submit) submit.click();
-        });
-      }
-
-      if (scrollIntoView) {
-        const field = container.querySelector('.gept-listen-field');
-        if (field) field.scrollIntoView({ block: 'start', behavior: 'smooth' });
-      }
     }
 
     function renderReadingSection() {
@@ -3411,8 +3345,6 @@
         lastCheckpoint: '第一階段-聽力第1題',
         listeningAnswers: {},
         listeningPlayed: {},
-        listenIndex: 0,
-        listeningPlaying: '',
         readingAnswers: {},
         speakingScores: {},
         writingAnswers: { s1: '', s2: '', s3: '', trans: '', essay: '', gradedScore: 0, feedback: '' }
@@ -5237,6 +5169,12 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
         if (node) stickyObserver.observe(node);
       });
       window.addEventListener('resize', syncStickyLayout);
+      window.addEventListener('orientationchange', () => {
+        window.setTimeout(syncStickyLayout, 80);
+      });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', syncStickyLayout);
+      }
       window.addEventListener('scroll', () => {
         const before = document.querySelector('header') ? document.querySelector('header').offsetHeight : 0;
         updateMainNavOnScroll();

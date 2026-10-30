@@ -172,8 +172,9 @@ function Invoke-GeptGasPost {
         if (-not $loc.IsAbsoluteUri) {
           $loc = New-Object System.Uri((New-Object System.Uri($current)), $loc)
         }
-        $current = $loc.AbsoluteUri
-        continue
+        # 網頁應用程式把 POST 結果放在重新導向網址，必須用 GET 讀取。再 POST 會得到「找不到網頁」。
+        $follow = $client.GetAsync($loc.AbsoluteUri).GetAwaiter().GetResult()
+        return $follow.Content.ReadAsStringAsync().GetAwaiter().GetResult()
       }
       return $resp.Content.ReadAsStringAsync().GetAwaiter().GetResult()
     }
@@ -226,7 +227,14 @@ function Publish-GeptAppVersion {
     Write-Host "試算表沒有回傳版次結果。請把 gas/Code.gs 部署成新版本（執行身分選「我」、存取權選「所有人」）。$snippet"
     exit 1
   }
-  $data = $safe.Substring($start, $end - $start + 1) | ConvertFrom-Json
+  try {
+    $data = $safe.Substring($start, $end - $start + 1) | ConvertFrom-Json
+  } catch {
+    $snippet = ($safe -replace '\s+', ' ')
+    if ($snippet.Length -gt 180) { $snippet = $snippet.Substring(0, 180) }
+    Write-Host "試算表沒有回傳版次結果。請把 gas/Code.gs 部署成新版本（執行身分選「我」、存取權選「所有人」）。$snippet"
+    exit 1
+  }
   if (-not $data.ok) {
     $reason = [string]$data.error
     if (-not $reason) { $reason = '試算表拒絕寫入' }
