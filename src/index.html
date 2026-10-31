@@ -752,7 +752,7 @@
             </div>
             <h2 class="text-lg sm:text-xl font-bold text-slate-900">「全民英檢成績」即時寫入紀錄與試算表格式預覽</h2>
             <p class="text-xs text-slate-600 mt-1">
-              開始測驗、交卷或關閉視窗時，由試算表擁有者的 Apps Script 依 <code class="bg-slate-100 px-1 rounded">Session_ID</code> 寫入同一列（A～R 共 18 欄，不顯示 Google 帳號欄位）。考生開始或結束作答時不會再跳出 Google 試算表授權視窗。
+              開始測驗、交卷或關閉視窗時，成績依 <code class="bg-slate-100 px-1 rounded">Session_ID</code> 寫入同一列（A～R 共 18 欄，不顯示 Google 帳號欄位）。每一場的題目、正確答案與考生作答會留在這一頁，點「回顧題目」即可展開，並另寫入試算表頁籤「作答回顧」。
             </p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
@@ -793,6 +793,17 @@
               <!-- Populated by renderSheetRecordsTable() -->
             </tbody>
           </table>
+        </div>
+
+        <div id="record-review-panel" class="hidden rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 space-y-3">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h3 id="record-review-title" class="text-sm font-bold text-slate-900">作答回顧</h3>
+              <p id="record-review-meta" class="text-xs text-slate-600 mt-1"></p>
+            </div>
+            <button type="button" id="record-review-close" class="shrink-0 px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700">收合</button>
+          </div>
+          <div id="record-review-body" class="space-y-4"></div>
         </div>
       </div>
     </section>
@@ -971,6 +982,7 @@
       generationCount: 1,
       dynamicMetaMap: {},
       records: [],
+      openReviewId: '',
       practice: {
         level: '初級',
         stage: 'listening', // 'listening' | 'reading' | 'speaking' | 'writing'
@@ -1055,10 +1067,24 @@
     }
 
     function saveRecordsToStorage() {
+      const write = (records) => {
+        localStorage.setItem('gept_sheet_records_v3', JSON.stringify(records));
+      };
       try {
-        localStorage.setItem('gept_sheet_records_v3', JSON.stringify(state.records));
+        write(state.records);
       } catch (e) {
-        // Ignore sandbox storage errors
+        try {
+          const slim = state.records.map((rec, idx) => {
+            if (idx < 12 || !rec.review) return rec;
+            const copy = Object.assign({}, rec);
+            delete copy.review;
+            return copy;
+          });
+          write(slim);
+          state.records = slim;
+        } catch (e2) {
+          // Ignore sandbox storage errors
+        }
       }
     }
 
@@ -2076,6 +2102,158 @@
       }
     }
 
+    function escapeHtml(text) {
+      return String(text == null ? '' : text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function choiceIndex(value) {
+      if (value === undefined || value === null || value === '') return null;
+      const n = Number(value);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function buildChoiceReview(subject, q, idx, chosenRaw, carriedPassage) {
+      const options = (q.options || []).slice();
+      const chosenIndex = choiceIndex(chosenRaw);
+      const correctIndex = choiceIndex(q.answer);
+      let result = '未作答';
+      if (chosenIndex != null) result = chosenIndex === correctIndex ? '正確' : '錯誤';
+      const passageText = q.passage || carriedPassage || '';
+      return {
+        subject: subject,
+        no: idx + 1,
+        id: q.id || '',
+        part: q.part || '',
+        stem: [passageText, q.audioText, q.prompt].filter(Boolean).join('\n'),
+        options: options,
+        correctIndex: correctIndex,
+        chosenIndex: chosenIndex,
+        correctLabel: '正確答案',
+        correct: options[correctIndex] || '',
+        chosen: chosenIndex == null ? '未作答' : (options[chosenIndex] || '未作答'),
+        result: result
+      };
+    }
+
+    function buildTextReview(subject, no, id, part, stem, correctLabel, correct, chosen, result, note) {
+      const text = (chosen || '').trim();
+      return {
+        subject: subject,
+        no: no,
+        id: id || '',
+        part: part || '',
+        stem: stem || '',
+        options: [],
+        correctIndex: null,
+        chosenIndex: null,
+        correctLabel: correctLabel,
+        correct: correct || '',
+        chosen: text || '未作答',
+        result: result || (text ? '已作答' : '未作答'),
+        note: note || ''
+      };
+    }
+
+    function buildExamReview() {
+      const level = state.exam.level;
+      const bank = bankForExam(level);
+      if (!bank) return { round: 0, items: [] };
+      const items = [];
+
+      (bank.listening || []).forEach((q, idx) => {
+        items.push(buildChoiceReview('聽力', q, idx, state.exam.listeningAnswers[q.id], ''));
+      });
+
+      let passage = '';
+      (bank.reading || []).forEach((q, idx) => {
+        if (q.passage) passage = q.passage;
+        items.push(buildChoiceReview('閱讀', q, idx, state.exam.readingAnswers[q.id], passage));
+      });
+
+      (bank.speaking || []).forEach((q, idx) => {
+        const sc = state.exam.speakingScores[q.id] || {};
+        const transcript = (sc.transcript || '').trim();
+        const openEnded = /回答|看圖|敘述/.test(q.part || '');
+        const printed = (q.printedQuestions || []).join('\n');
+        const stem = [printed, q.audioText, q.instruction].filter(Boolean).join('\n');
+        let result = '未作答';
+        if (transcript || sc.recorded) {
+          result = sc.score100 > 0
+            ? `流利 ${sc.fluencyBand}/5、文法 ${sc.grammarBand}/5，${sc.score100}分`
+            : '已作答';
+        }
+        const reference = openEnded
+          ? ('開放作答' + (q.expectedKeywords && q.expectedKeywords.length ? '。評分會看這些字：' + q.expectedKeywords.join(', ') : ''))
+          : (q.audioText || '');
+        items.push(buildTextReview(
+          '口說',
+          idx + 1,
+          q.id,
+          q.part,
+          stem,
+          openEnded ? '參考說明' : '應複誦或朗讀',
+          reference,
+          transcript || (sc.recorded ? '已錄音，沒有留下辨識文字' : ''),
+          result
+        ));
+      });
+
+      const w = state.exam.writingAnswers || {};
+      const bankW = bank.writing || {};
+      if (level === '初級' && bankW.sentences) {
+        [w.s1 || '', w.s2 || '', w.s3 || ''].forEach((value, idx) => {
+          const sq = bankW.sentences[idx];
+          if (!sq) return;
+          items.push(buildTextReview('寫作', idx + 1, sq.id, sq.type || '單句寫作', sq.prompt, '參考答案', sq.sample, value, ''));
+        });
+      }
+      if (level !== '初級' && bankW.translation) {
+        items.push(buildTextReview('寫作', 1, bankW.translation.id, '中譯英', bankW.translation.prompt, '參考譯文', bankW.translation.sample, w.trans, ''));
+      }
+      if (bankW.essay) {
+        items.push(buildTextReview(
+          '寫作',
+          level === '初級' ? 4 : 2,
+          bankW.essay.id,
+          level === '初級' ? '段落寫作' : '英文作文',
+          bankW.essay.prompt,
+          '參考範文',
+          bankW.essay.sample,
+          w.essay,
+          (w.essay || '').trim() ? '已作答' : '未作答',
+          w.feedback || ''
+        ));
+      }
+
+      return {
+        round: state.examPaper && state.examPaper.round ? state.examPaper.round : 0,
+        items: items
+      };
+    }
+
+    function clipReviewForSheet(review) {
+      if (!review || !Array.isArray(review.items) || !review.items.length) return null;
+      const pack = (stemMax, answerMax) => ({
+        round: review.round || 0,
+        items: review.items.slice(0, 80).map((item) => ({
+          subject: item.subject,
+          no: item.no,
+          part: item.part,
+          stem: String((item.stem || '') + (item.note ? '\n' + item.note : '')).slice(0, stemMax),
+          correct: String(item.correct || '').slice(0, answerMax),
+          chosen: String(item.chosen || '').slice(0, answerMax),
+          result: String(item.result || '').slice(0, 200)
+        }))
+      });
+      let packed = pack(1200, 800);
+      if (JSON.stringify(packed).length > 48000) packed = pack(400, 240);
+      return packed;
+    }
+
     // 本機預覽表先更新，再以已登入 Google 帳號寫入試算表「全民英檢成績(自動)」同一 Session_ID 列
     function syncCurrentExamToSheet(statusValue, customNote, useBeacon) {
       if (!state.exam.sessionId) return Promise.resolve(false);
@@ -2101,12 +2279,18 @@
         lastCheckpoint: state.exam.lastCheckpoint,
         notes: customNote || `聽力${scores.lCorrect}/10、閱讀${scores.rCorrect}/10、口說${scores.sAnswered}/5、寫作${scores.wScore}分`
       };
+      const review = buildExamReview();
+      const localRecord = Object.assign({}, payload, { review: review });
+      payload.review = clipReviewForSheet(review);
 
       const existingIdx = state.records.findIndex(r => r.sessionId === payload.sessionId);
       if (existingIdx >= 0) {
-        state.records[existingIdx] = payload;
+        if (!localRecord.review && state.records[existingIdx].review) {
+          localRecord.review = state.records[existingIdx].review;
+        }
+        state.records[existingIdx] = localRecord;
       } else {
-        state.records.unshift(payload);
+        state.records.unshift(localRecord);
       }
       saveRecordsToStorage();
       renderSheetRecordsTable();
@@ -2167,8 +2351,16 @@
         const pass1Style = calc.stage1Pass === '通過' ? 'text-emerald-700 font-bold' : 'text-rose-600';
         const pass2Style = calc.stage2Pass === '通過' ? 'text-emerald-700 font-bold' : 'text-rose-600';
 
+        const sid = escapeHtml(rec.sessionId);
+        const reviewOpen = state.openReviewId === rec.sessionId;
         tr.innerHTML = `
-          <td class="py-2.5 px-3 font-mono font-semibold text-slate-900">${rec.sessionId}</td>
+          <td class="py-2.5 px-3">
+            <div class="font-mono font-semibold text-slate-900">${sid}</div>
+            <button type="button" data-review-session="${sid}"
+              class="mt-1 px-2 py-0.5 rounded-md border text-[11px] font-bold ${reviewOpen ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-50 text-indigo-700 border-indigo-200'}">
+              ${reviewOpen ? '收合回顧' : '回顧題目'}
+            </button>
+          </td>
           <td class="py-2.5 px-3 font-bold text-slate-900">${rec.userName}</td>
           <td class="py-2.5 px-3 font-semibold">${rec.level}</td>
           <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-[11px] font-semibold ${statusStyle}">${rec.status}</span></td>
@@ -2189,6 +2381,93 @@
         `;
         tbody.appendChild(tr);
       });
+      renderRecordReview(false);
+    }
+
+    function reviewResultClass(result) {
+      if (result === '正確') return 'bg-emerald-100 text-emerald-800';
+      if (result === '錯誤') return 'bg-rose-100 text-rose-800';
+      if (result === '未作答') return 'bg-slate-200 text-slate-600';
+      return 'bg-indigo-100 text-indigo-800';
+    }
+
+    function reviewOptionsHtml(item) {
+      if (!item.options || !item.options.length) return '';
+      return '<ul class="mt-2 space-y-1">' + item.options.map((opt, i) => {
+        const isCorrect = i === item.correctIndex;
+        const isChosen = i === item.chosenIndex;
+        let cls = 'text-slate-700';
+        let tag = '';
+        if (isCorrect && isChosen) {
+          cls = 'text-emerald-900 bg-emerald-100';
+          tag = '正確，考生所選';
+        } else if (isCorrect) {
+          cls = 'text-emerald-800 bg-emerald-50';
+          tag = '正確答案';
+        } else if (isChosen) {
+          cls = 'text-rose-800 bg-rose-50';
+          tag = '考生所選';
+        }
+        return `<li class="px-2 py-1 rounded text-xs leading-relaxed ${cls}">${escapeHtml(opt)}${tag ? ` <span class="text-[10px] font-bold">（${tag}）</span>` : ''}</li>`;
+      }).join('') + '</ul>';
+    }
+
+    function reviewTextBlock(label, text) {
+      return `<div class="mt-2">
+        <div class="text-[11px] font-bold text-slate-500">${escapeHtml(label)}</div>
+        <div class="mt-0.5 text-xs text-slate-800 whitespace-pre-line leading-relaxed">${escapeHtml(text || '—')}</div>
+      </div>`;
+    }
+
+    function renderRecordReview(scrollIntoView) {
+      const panel = document.getElementById('record-review-panel');
+      const title = document.getElementById('record-review-title');
+      const meta = document.getElementById('record-review-meta');
+      const body = document.getElementById('record-review-body');
+      if (!panel || !title || !meta || !body) return;
+      const rec = state.openReviewId
+        ? state.records.find(item => item.sessionId === state.openReviewId)
+        : null;
+      if (!rec) {
+        state.openReviewId = '';
+        panel.classList.add('hidden');
+        body.innerHTML = '';
+        return;
+      }
+      const review = rec.review && Array.isArray(rec.review.items) ? rec.review : null;
+      const roundText = review && review.round ? `第 ${review.round} 回` : '';
+      title.textContent = `${rec.userName || '考生'}　${rec.level || ''} ${roundText}`.trim();
+      meta.textContent = `${rec.sessionId}　${rec.status || ''}　${rec.startTime || ''}–${rec.endTime || ''}`;
+      if (!review || !review.items.length) {
+        body.innerHTML = '<p class="text-xs text-slate-600 leading-relaxed">這筆沒有留下當次題目與作答。結構範例不會有回顧；由此機開始的正式測驗，會在作答、交卷或關閉時保留題目與答案。</p>';
+      } else {
+        const subjects = ['聽力', '閱讀', '口說', '寫作'];
+        body.innerHTML = subjects.map((subject) => {
+          const list = review.items.filter(item => item.subject === subject);
+          if (!list.length) return '';
+          const cards = list.map((item) => {
+            const choiceList = item.options && item.options.length;
+            return `<article class="rounded-xl bg-white border border-slate-200 p-3">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="text-[11px] font-bold text-indigo-700">${escapeHtml(item.part || subject)}</div>
+                  <div class="text-sm font-bold text-slate-900">第 ${escapeHtml(item.no)} 題</div>
+                </div>
+                <span class="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-bold ${reviewResultClass(item.result)}">${escapeHtml(item.result || '')}</span>
+              </div>
+              ${reviewTextBlock('題目', item.stem)}
+              ${choiceList ? reviewOptionsHtml(item) : reviewTextBlock(item.correctLabel || '參考答案', item.correct) + reviewTextBlock('考生作答', item.chosen)}
+              ${item.note ? reviewTextBlock('評分', item.note) : ''}
+            </article>`;
+          }).join('');
+          return `<section class="space-y-2">
+            <h4 class="text-xs font-bold text-slate-800">${subject}（${list.length} 題）</h4>
+            <div class="grid gap-2">${cards}</div>
+          </section>`;
+        }).join('');
+      }
+      panel.classList.remove('hidden');
+      if (scrollIntoView) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     // =========================================================================
@@ -4954,12 +5233,38 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
       document.getElementById('nav-btn-records').addEventListener('click', () => {
         requireAuthOrNavigate(() => {
           requestLeaveExamScreen('成績紀錄', () => {
-            state.activeTab = 'records';
-            renderSheetRecordsTable();
-            updateActiveView();
+            const openRecords = () => {
+              state.activeTab = 'records';
+              renderSheetRecordsTable();
+              updateActiveView();
+            };
+            if (state.exam.sessionId && state.exam.active) {
+              syncCurrentExamToSheet('進行中').then(openRecords, openRecords);
+            } else {
+              openRecords();
+            }
           });
         });
       });
+
+      const recordsBody = document.getElementById('sheet-records-tbody');
+      if (recordsBody) {
+        recordsBody.addEventListener('click', (event) => {
+          const btn = event.target.closest('[data-review-session]');
+          if (!btn) return;
+          const sid = btn.getAttribute('data-review-session');
+          state.openReviewId = state.openReviewId === sid ? '' : sid;
+          renderSheetRecordsTable();
+          if (state.openReviewId) renderRecordReview(true);
+        });
+      }
+      const reviewClose = document.getElementById('record-review-close');
+      if (reviewClose) {
+        reviewClose.addEventListener('click', () => {
+          state.openReviewId = '';
+          renderSheetRecordsTable();
+        });
+      }
 
       // Practice & Start Exam Buttons
       document.getElementById('btn-practice-elementary').addEventListener('click', () => openPracticeMode('初級'));
