@@ -19,6 +19,7 @@
 
 const SPREADSHEET_ID = '1Tc4ga4XEA9LoB-HB2bFhN5j1S-ws1UHT65Ea0y8s7PI';
 const SHEET_NAME = '測驗成績紀錄';
+const REVIEW_SHEET_NAME = '作答回顧';
 const VERSION_SHEET_NAME = 'App版次';
 // 編譯腳本從此常數讀取。不要貼進 index.html，否則任何平板都能把舊版改成最新。
 const VERSION_PUBLISH_TOKEN = 'b7e4c91a6d2f4803ae15c8d79f0b3264';
@@ -575,6 +576,61 @@ function doGet(e) {
   }
 }
 
+function ensureReviewSheet(ss) {
+  let sheet = ss.getSheetByName(REVIEW_SHEET_NAME);
+  const header = ['測驗序號', '考生中文姓名', '測驗級別', '科目', '題號', '部分', '題目', '正確答案或參考', '考生作答', '結果'];
+  if (!sheet) sheet = ss.insertSheet(REVIEW_SHEET_NAME);
+  if (String(sheet.getRange(1, 1).getValue() || '') !== '測驗序號') {
+    if (sheet.getLastRow() > 0) sheet.insertRowBefore(1);
+    sheet.getRange(1, 1, 1, header.length).setValues([header]);
+    sheet.getRange(1, 1, 1, header.length).setFontWeight('bold');
+    sheet.setFrozenRows(1);
+    sheet.setColumnWidth(7, 420);
+    sheet.setColumnWidth(8, 320);
+    sheet.setColumnWidth(9, 320);
+  }
+  return sheet;
+}
+
+function clipReviewText(value, maxLen) {
+  return String(value == null ? '' : value).slice(0, maxLen);
+}
+
+/** 依 Session_ID 覆寫頁籤「作答回顧」。成績主表 A～R 維持不變。 */
+function replaceSessionReview(ss, data) {
+  const review = data && data.review;
+  const items = review && review.items;
+  if (!items || !items.length) return;
+  const sheet = ensureReviewSheet(ss);
+  const sessionId = String(data.sessionId || '');
+  const last = sheet.getLastRow();
+  if (last >= 2) {
+    const ids = sheet.getRange(2, 1, last - 1, 1).getValues();
+    for (let i = ids.length - 1; i >= 0; i--) {
+      if (String(ids[i][0]) === sessionId) sheet.deleteRow(i + 2);
+    }
+  }
+  const rows = [];
+  items.forEach(function (item) {
+    if (!item) return;
+    rows.push([
+      sessionId,
+      data.userName || '',
+      data.level || '',
+      clipReviewText(item.subject, 20),
+      item.no || '',
+      clipReviewText(item.part, 80),
+      clipReviewText(item.stem, 3500),
+      clipReviewText(item.correct, 1500),
+      clipReviewText(item.chosen, 1500),
+      clipReviewText(item.result, 200)
+    ]);
+  });
+  if (!rows.length) return;
+  const start = Math.max(sheet.getLastRow() + 1, 2);
+  sheet.getRange(start, 1, rows.length, 10).setValues(rows);
+}
+
 function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.tryLock(10000);
@@ -631,6 +687,11 @@ function doPost(e) {
     ];
 
     sheet.getRange(targetRow, 1, 1, rowData.length).setValues([rowData]);
+    try {
+      replaceSessionReview(ss, data);
+    } catch (reviewErr) {
+      // 成績列已寫入。作答回顧失敗時仍回傳成功，避免考生端把整筆成績當成沒送出。
+    }
     SpreadsheetApp.flush();
 
     return ContentService.createTextOutput(JSON.stringify({
