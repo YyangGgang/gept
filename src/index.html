@@ -794,17 +794,6 @@
             </tbody>
           </table>
         </div>
-
-        <div id="record-review-panel" class="hidden rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 space-y-3">
-          <div class="flex items-start justify-between gap-3">
-            <div class="min-w-0">
-              <h3 id="record-review-title" class="text-sm font-bold text-slate-900">作答回顧</h3>
-              <p id="record-review-meta" class="text-xs text-slate-600 mt-1"></p>
-            </div>
-            <button type="button" id="record-review-close" class="shrink-0 px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700">收合</button>
-          </div>
-          <div id="record-review-body" class="space-y-4"></div>
-        </div>
       </div>
     </section>
 
@@ -2380,8 +2369,58 @@
           <td class="py-2.5 px-3 text-slate-500 max-w-xs truncate" title="${rec.notes}">${rec.notes}</td>
         `;
         tbody.appendChild(tr);
+        if (reviewOpen) tbody.appendChild(buildRecordReviewRow(rec, sid));
       });
-      renderRecordReview(false);
+    }
+
+    function buildRecordReviewRow(rec, sid) {
+      const review = rec.review && Array.isArray(rec.review.items) ? rec.review : null;
+      const roundText = review && review.round ? `第 ${review.round} 回` : '';
+      const title = `${rec.userName || '考生'}　${rec.level || ''} ${roundText}`.trim();
+      const meta = `${rec.sessionId}　${rec.status || ''}　${rec.startTime || ''}–${rec.endTime || ''}`;
+      let body = '<p class="text-xs text-slate-600 leading-relaxed">這筆沒有留下當次題目與作答。結構範例不會有回顧；由此機開始的正式測驗，會在作答、交卷或關閉時保留題目與答案。</p>';
+      if (review && review.items.length) {
+        const subjects = ['聽力', '閱讀', '口說', '寫作'];
+        body = subjects.map((subject) => {
+          const list = review.items.filter(item => item.subject === subject);
+          if (!list.length) return '';
+          const cards = list.map((item) => {
+            const choiceList = item.options && item.options.length;
+            return `<article class="rounded-xl bg-white border border-slate-200 p-3">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="text-[11px] font-bold text-indigo-700">${escapeHtml(item.part || subject)}</div>
+                  <div class="text-sm font-bold text-slate-900">第 ${escapeHtml(item.no)} 題</div>
+                </div>
+                <span class="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-bold ${reviewResultClass(item.result)}">${escapeHtml(item.result || '')}</span>
+              </div>
+              ${reviewTextBlock('題目', item.stem)}
+              ${choiceList ? reviewOptionsHtml(item) : reviewTextBlock(item.correctLabel || '參考答案', item.correct) + reviewTextBlock('考生作答', item.chosen)}
+              ${item.note ? reviewTextBlock('評分', item.note) : ''}
+            </article>`;
+          }).join('');
+          return `<section class="space-y-2">
+            <h4 class="text-xs font-bold text-slate-800">${subject}（${list.length} 題）</h4>
+            <div class="grid gap-2">${cards}</div>
+          </section>`;
+        }).join('');
+      }
+      const detail = document.createElement('tr');
+      detail.id = 'record-review-row';
+      detail.innerHTML = `
+        <td colspan="18" class="p-0 whitespace-normal bg-indigo-50/70 border-t border-indigo-100">
+          <div class="max-w-5xl p-4 space-y-3">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h3 class="text-sm font-bold text-slate-900">${escapeHtml(title)}</h3>
+                <p class="text-xs text-slate-600 mt-1">${escapeHtml(meta)}</p>
+              </div>
+              <button type="button" data-review-session="${sid}" class="shrink-0 px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700">收合</button>
+            </div>
+            <div class="space-y-4">${body}</div>
+          </div>
+        </td>`;
+      return detail;
     }
 
     function reviewResultClass(result) {
@@ -2419,57 +2458,6 @@
       </div>`;
     }
 
-    function renderRecordReview(scrollIntoView) {
-      const panel = document.getElementById('record-review-panel');
-      const title = document.getElementById('record-review-title');
-      const meta = document.getElementById('record-review-meta');
-      const body = document.getElementById('record-review-body');
-      if (!panel || !title || !meta || !body) return;
-      const rec = state.openReviewId
-        ? state.records.find(item => item.sessionId === state.openReviewId)
-        : null;
-      if (!rec) {
-        state.openReviewId = '';
-        panel.classList.add('hidden');
-        body.innerHTML = '';
-        return;
-      }
-      const review = rec.review && Array.isArray(rec.review.items) ? rec.review : null;
-      const roundText = review && review.round ? `第 ${review.round} 回` : '';
-      title.textContent = `${rec.userName || '考生'}　${rec.level || ''} ${roundText}`.trim();
-      meta.textContent = `${rec.sessionId}　${rec.status || ''}　${rec.startTime || ''}–${rec.endTime || ''}`;
-      if (!review || !review.items.length) {
-        body.innerHTML = '<p class="text-xs text-slate-600 leading-relaxed">這筆沒有留下當次題目與作答。結構範例不會有回顧；由此機開始的正式測驗，會在作答、交卷或關閉時保留題目與答案。</p>';
-      } else {
-        const subjects = ['聽力', '閱讀', '口說', '寫作'];
-        body.innerHTML = subjects.map((subject) => {
-          const list = review.items.filter(item => item.subject === subject);
-          if (!list.length) return '';
-          const cards = list.map((item) => {
-            const choiceList = item.options && item.options.length;
-            return `<article class="rounded-xl bg-white border border-slate-200 p-3">
-              <div class="flex items-start justify-between gap-2">
-                <div class="min-w-0">
-                  <div class="text-[11px] font-bold text-indigo-700">${escapeHtml(item.part || subject)}</div>
-                  <div class="text-sm font-bold text-slate-900">第 ${escapeHtml(item.no)} 題</div>
-                </div>
-                <span class="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-bold ${reviewResultClass(item.result)}">${escapeHtml(item.result || '')}</span>
-              </div>
-              ${reviewTextBlock('題目', item.stem)}
-              ${choiceList ? reviewOptionsHtml(item) : reviewTextBlock(item.correctLabel || '參考答案', item.correct) + reviewTextBlock('考生作答', item.chosen)}
-              ${item.note ? reviewTextBlock('評分', item.note) : ''}
-            </article>`;
-          }).join('');
-          return `<section class="space-y-2">
-            <h4 class="text-xs font-bold text-slate-800">${subject}（${list.length} 題）</h4>
-            <div class="grid gap-2">${cards}</div>
-          </section>`;
-        }).join('');
-      }
-      panel.classList.remove('hidden');
-      if (scrollIntoView) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
     // =========================================================================
     // 5. WEB AUDIO & SPEECH SYNTHESIS FOR LISTENING & STAGE 2 AUDIO-LISTENING
     // =========================================================================
@@ -2492,10 +2480,13 @@
     }
 
     let androidSpeakToken = null;
+    let webSpeakToken = null;
     let androidTtsInstallPrompted = false;
+    let androidVoiceListPromise = null;
 
     function stopEnglishSpeech() {
       androidSpeakToken = null;
+      webSpeakToken = null;
       if (window.speechSynthesis) {
         try { window.speechSynthesis.cancel(); } catch (e) {}
       }
@@ -2524,6 +2515,142 @@
       }
     }
 
+    function listeningTurns(text) {
+      const src = String(text || '').replace(/\s+/g, ' ').trim();
+      if (!src) return [];
+      const re = /\b(Woman|Man|Question)\s*:/gi;
+      const marks = [];
+      let match;
+      while ((match = re.exec(src))) {
+        marks.push({ role: match[1].toLowerCase(), start: match.index, end: re.lastIndex });
+      }
+      if (!marks.length) return [{ role: 'narrator', text: src }];
+      const turns = [];
+      if (marks[0].start > 0) {
+        const lead = src.slice(0, marks[0].start).trim();
+        if (lead) turns.push({ role: 'narrator', text: lead });
+      }
+      marks.forEach((mark, index) => {
+        const next = index + 1 < marks.length ? marks[index + 1].start : src.length;
+        const line = src.slice(mark.end, next).trim();
+        if (line) turns.push({ role: mark.role, text: line });
+      });
+      return turns.length ? turns : [{ role: 'narrator', text: src }];
+    }
+
+    function voiceGender(voice) {
+      const blob = `${(voice && voice.name) || ''} ${(voice && voice.voiceURI) || ''}`;
+      if (/female|woman|\b(zira|samantha|victoria|karen|moira|fiona|susan|aria|jenny|sara|libby|sonia|hazel|natasha|allison|ava|emma|joanna|ivy|kimberly|salli|kendra)\b|x-sfg|x-iog|x-tpf|x-tpc|x-gba|x-gbb|x-gbc|x-fis|smtf/i.test(blob)) {
+        return 'woman';
+      }
+      if (/\bmale\b|\b(david|mark|daniel|alex|fred|george|guy|ryan|james|thomas|rishi|brian|matthew|justin|joey|kevin|stephen)\b|x-iom|x-iob|x-iol|x-tpd|x-gbd|x-rjs|smtm/i.test(blob)) {
+        return 'man';
+      }
+      return '';
+    }
+
+    function preferUsVoices(list) {
+      const us = list.filter((voice) => /en[-_]?us/i.test(String(voice.lang || '')));
+      return us.length ? us : list;
+    }
+
+    function chooseDialogueVoices(voices) {
+      const english = (voices || []).filter((voice) => /^en([-_]|$)/i.test(String(voice.lang || '')));
+      const women = preferUsVoices(english.filter((voice) => voiceGender(voice) === 'woman'));
+      const men = preferUsVoices(english.filter((voice) => voiceGender(voice) === 'man'));
+      const region = preferUsVoices(english);
+      const woman = women[0] || null;
+      const man = men[0] || null;
+      const used = new Set([woman, man].filter(Boolean));
+      const question = region.find((voice) => !used.has(voice)) || woman || man || region[0] || null;
+      const narrator = region[0] || question;
+      return {
+        woman: woman || narrator,
+        man: man || narrator,
+        question: question || narrator,
+        narrator,
+        distinct: !!(woman && man && woman !== man)
+      };
+    }
+
+    function dialogueProfile(role, plan, baseRate) {
+      const distinct = !!(plan && plan.distinct);
+      let pitch = 1;
+      let rateScale = 1;
+      let voice = plan && plan.narrator;
+      if (role === 'woman') {
+        pitch = distinct ? 1.32 : 1.52;
+        rateScale = 1.05;
+        voice = (plan && plan.woman) || voice;
+      } else if (role === 'man') {
+        pitch = distinct ? 0.7 : 0.62;
+        rateScale = 0.86;
+        voice = (plan && plan.man) || voice;
+      } else if (role === 'question') {
+        pitch = 1.02;
+        rateScale = 0.96;
+        voice = (plan && plan.question) || voice;
+      }
+      return {
+        pitch,
+        rate: Math.max(0.55, Math.min(1.25, (baseRate || 0.95) * rateScale)),
+        voice: voice || null
+      };
+    }
+
+    function waitForSpeechGap(ms, token) {
+      return new Promise((resolve) => {
+        setTimeout(() => resolve(androidSpeakToken === token), ms);
+      });
+    }
+
+    function loadAndroidVoices(plugin) {
+      if (typeof plugin.getSupportedVoices !== 'function') return Promise.resolve([]);
+      if (!androidVoiceListPromise) {
+        androidVoiceListPromise = plugin.getSupportedVoices().then((result) => {
+          const voices = (result && result.voices) || [];
+          if (!voices.length) androidVoiceListPromise = null;
+          return voices.map((voice, index) => Object.assign({ index }, voice));
+        }).catch(() => {
+          androidVoiceListPromise = null;
+          return [];
+        });
+      }
+      return androidVoiceListPromise;
+    }
+
+    function tabletSpeakLine(plugin, token, options, attempt) {
+      return new Promise((resolve, reject) => {
+        if (androidSpeakToken !== token) {
+          resolve('cancelled');
+          return;
+        }
+        const payload = {
+          text: options.text,
+          lang: options.lang || 'en-US',
+          rate: options.rate,
+          pitch: options.pitch,
+          volume: 1,
+          queueStrategy: 0
+        };
+        if (typeof options.voiceIndex === 'number') payload.voice = options.voiceIndex;
+        plugin.speak(payload).then(() => resolve('ok')).catch((err) => {
+          if (androidSpeakToken !== token) {
+            resolve('cancelled');
+            return;
+          }
+          const message = String((err && (err.message || err.errorMessage)) || err || '');
+          if (/not yet initialized|not available/i.test(message) && attempt < 6) {
+            setTimeout(() => {
+              tabletSpeakLine(plugin, token, options, attempt + 1).then(resolve, reject);
+            }, 400);
+            return;
+          }
+          reject(err);
+        });
+      });
+    }
+
     function speakEnglishOnTablet(text, rate, onEndCallback) {
       const token = {};
       androidSpeakToken = token;
@@ -2540,8 +2667,9 @@
         setTimeout(done, 400);
         return;
       }
-      const spoken = String(text || '').trim();
-      const estMs = Math.max(12000, Math.min(60000, spoken.length * 140 + 2500));
+      const turns = listeningTurns(text);
+      const spoken = turns.map((turn) => turn.text).join(' ');
+      const estMs = Math.max(12000, Math.min(90000, spoken.length * 160 + turns.length * 900 + 2500));
       const timer = setTimeout(() => {
         try { plugin.stop(); } catch (e) {}
         done();
@@ -2551,43 +2679,119 @@
         showToast('平板沒有唸出英文', message, 'amber');
         done();
       };
-      const speakWithLang = (lang, attempt) => {
+      const run = async () => {
+        let lang = 'en-US';
+        let triedFallback = false;
+        let useFallbackLang = false;
+        const voices = await loadAndroidVoices(plugin);
         if (androidSpeakToken !== token) return;
-        plugin.speak({
-          text: spoken,
-          lang: lang,
-          rate: Math.max(0.6, Math.min(1.2, rate || 0.95)),
-          pitch: 1,
-          volume: 1
-        }).then(() => {
-          clearTimeout(timer);
-          done();
-        }).catch((err) => {
+        const plan = chooseDialogueVoices(voices);
+        for (let i = 0; i < turns.length; i += 1) {
           if (androidSpeakToken !== token) return;
-          const message = String((err && (err.message || err.errorMessage)) || err || '');
-          if (/not yet initialized|not available/i.test(message) && attempt < 6) {
-            setTimeout(() => speakWithLang(lang, attempt + 1), 400);
-            return;
-          }
-          if (/not supported/i.test(message)) {
-            findAndroidEnglishLang(plugin).then((fallback) => {
+          const profile = dialogueProfile(turns[i].role, plan, rate);
+          const voiceLang = useFallbackLang ? lang : ((profile.voice && profile.voice.lang) || lang);
+          try {
+            const status = await tabletSpeakLine(plugin, token, {
+              text: turns[i].text,
+              lang: voiceLang,
+              rate: profile.rate,
+              pitch: profile.pitch,
+              voiceIndex: useFallbackLang ? undefined : (profile.voice && typeof profile.voice.index === 'number' ? profile.voice.index : undefined)
+            }, 0);
+            if (status === 'cancelled' || androidSpeakToken !== token) return;
+          } catch (err) {
+            if (androidSpeakToken !== token) return;
+            const message = String((err && (err.message || err.errorMessage)) || err || '');
+            if (/not supported/i.test(message) && !triedFallback) {
+              triedFallback = true;
+              const fallback = await findAndroidEnglishLang(plugin);
               if (androidSpeakToken !== token) return;
-              if (fallback && fallback !== lang) {
-                speakWithLang(fallback, attempt + 1);
-                return;
+              if (fallback) {
+                lang = fallback;
+                useFallbackLang = true;
+                i -= 1;
+                continue;
               }
               if (!androidTtsInstallPrompted && typeof plugin.openInstall === 'function') {
                 androidTtsInstallPrompted = true;
                 try { plugin.openInstall(); } catch (e) {}
               }
               fail('這台平板還沒有英文語音。請在「文字轉語音輸出」安裝 Google 文字轉語音的英文（美國）後再播放。');
-            });
+              return;
+            }
+            fail('英文沒有播完。請確認媒體音量已打開，並已安裝英文文字轉語音。');
             return;
           }
-          fail('英文沒有播完。請確認媒體音量已打開，並已安裝英文文字轉語音。');
-        });
+          if (i < turns.length - 1) {
+            const stillPlaying = await waitForSpeechGap(340, token);
+            if (!stillPlaying) return;
+          }
+        }
+        clearTimeout(timer);
+        done();
       };
-      setTimeout(() => speakWithLang('en-US', 0), 180);
+      setTimeout(() => {
+        run().catch(() => {
+          if (androidSpeakToken === token) {
+            fail('英文沒有播完。請確認媒體音量已打開，並已安裝英文文字轉語音。');
+          }
+        });
+      }, 180);
+    }
+
+    function currentWebEnglishVoices() {
+      if (!window.speechSynthesis || typeof window.speechSynthesis.getVoices !== 'function') return [];
+      try { return window.speechSynthesis.getVoices() || []; } catch (e) { return []; }
+    }
+
+    function speakEnglishOnWeb(text, rate, onEndCallback) {
+      const token = {};
+      webSpeakToken = token;
+      window.speechSynthesis.cancel();
+      const turns = listeningTurns(text);
+      let finished = false;
+      let index = 0;
+      const done = () => {
+        if (finished || webSpeakToken !== token) return;
+        finished = true;
+        webSpeakToken = null;
+        if (onEndCallback) onEndCallback();
+      };
+      if (!turns.length) {
+        setTimeout(done, 300);
+        return;
+      }
+      const totalChars = turns.reduce((sum, turn) => sum + turn.text.length, 0);
+      const estMs = Math.max(3500, Math.min(28000, totalChars * 75 + turns.length * 700));
+      const timer = setTimeout(done, estMs);
+      const plan = chooseDialogueVoices(currentWebEnglishVoices());
+      const speakNext = () => {
+        if (finished || webSpeakToken !== token) return;
+        if (index >= turns.length) {
+          clearTimeout(timer);
+          done();
+          return;
+        }
+        const turn = turns[index];
+        index += 1;
+        const profile = dialogueProfile(turn.role, plan, rate);
+        const utter = new SpeechSynthesisUtterance(turn.text);
+        utter.lang = (profile.voice && profile.voice.lang) || 'en-US';
+        utter.rate = profile.rate;
+        utter.pitch = profile.pitch;
+        if (profile.voice) utter.voice = profile.voice;
+        utter.onend = () => {
+          if (finished || webSpeakToken !== token) return;
+          setTimeout(speakNext, 280);
+        };
+        utter.onerror = () => {
+          clearTimeout(timer);
+          done();
+        };
+        try { window.speechSynthesis.resume(); } catch (e) {}
+        window.speechSynthesis.speak(utter);
+      };
+      setTimeout(speakNext, 50);
     }
 
     function speakEnglishOnce(text, rate, onEndCallback) {
@@ -2598,28 +2802,20 @@
       }
       if ('speechSynthesis' in window) {
         try {
-          window.speechSynthesis.cancel();
-          const utter = new SpeechSynthesisUtterance(text);
-          utter.lang = 'en-US';
-          utter.rate = rate || 0.95;
-          let finished = false;
-          const done = () => {
-            if (finished) return;
-            finished = true;
-            if (onEndCallback) onEndCallback();
-          };
-          utter.onend = done;
-          utter.onerror = done;
-          window.speechSynthesis.speak(utter);
-          // Fallback timeout in case sandboxed iframe speechSynthesis doesn't fire onend
-          const estMs = Math.max(2200, Math.min(8000, text.length * 55));
-          setTimeout(done, estMs);
+          speakEnglishOnWeb(text, rate, onEndCallback);
           return;
         } catch (e) {}
       }
       setTimeout(() => {
         if (onEndCallback) onEndCallback();
       }, 2200);
+    }
+
+    if (window.speechSynthesis) {
+      try { window.speechSynthesis.getVoices(); } catch (e) {}
+      window.speechSynthesis.addEventListener('voiceschanged', () => {
+        try { window.speechSynthesis.getVoices(); } catch (e) {}
+      });
     }
 
     // One live microphone session for practice and stage-2 speaking.
@@ -5255,14 +5451,8 @@ ${enc.readinessMsg}`, isCorrect ? 'emerald' : 'amber');
           const sid = btn.getAttribute('data-review-session');
           state.openReviewId = state.openReviewId === sid ? '' : sid;
           renderSheetRecordsTable();
-          if (state.openReviewId) renderRecordReview(true);
-        });
-      }
-      const reviewClose = document.getElementById('record-review-close');
-      if (reviewClose) {
-        reviewClose.addEventListener('click', () => {
-          state.openReviewId = '';
-          renderSheetRecordsTable();
+          const reviewRow = document.getElementById('record-review-row');
+          if (reviewRow) reviewRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         });
       }
 
